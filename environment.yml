@@ -1,0 +1,11 @@
+name: guitar_env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - numpy
+  - pygame
+  - python-sounddevice
+  - aubio
+  - pip
