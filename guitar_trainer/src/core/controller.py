@@ -58,3 +58,45 @@ class AppController:
         # Si on a calculé de nouvelles features, on met à jour l'état partagé
         if last_features is not None:
             self.state.update_features(last_features)
+    
+    def cycle_input_device(self, direction: int) -> None:
+        """Change le périphérique d'entrée et s'adapte à son Sample Rate natif."""
+        devices = self.state.get_input_devices()
+        if not devices:
+            return
+
+        # 1. Identifier l'index actuel
+        current_idx = 0
+        current_id = self.cfg.device_name_or_index
+        
+        for i, dev in enumerate(devices):
+            if dev['index'] == current_id or dev['name'] == current_id:
+                current_idx = i
+                break
+        
+        # 2. Calculer le nouveau
+        new_idx = (current_idx + direction) % len(devices)
+        new_dev = devices[new_idx]
+        
+        # 3. Arrêt Audio
+        was_running = self.audio.is_running()
+        if was_running:
+            self.stop_audio()
+            
+        # 4. Mise à jour Config (ID + Sample Rate)
+        self.cfg.device_name_or_index = new_dev['index']
+        
+        # AJOUT : Adaptation automatique au taux d'échantillonnage du device
+        new_sr = int(new_dev['samplerate'])
+        if new_sr > 0 and new_sr != self.cfg.sample_rate:
+            print(f"[CONTROLLER] Auto-adjusting Sample Rate: {self.cfg.sample_rate} -> {new_sr} Hz")
+            self.cfg.sample_rate = new_sr
+            # CRUCIAL : On doit recréer l'extracteur car Aubio est configuré à l'init avec le SR
+            self.extractor = FeatureExtractor(self.cfg)
+        
+        print(f"[CONTROLLER] Switching input to: {new_dev['name']} (Index {new_dev['index']}, SR={new_sr})")
+        
+        # 5. Redémarrage
+        if was_running:
+            self.start_audio()
+    

@@ -26,10 +26,11 @@ def main() -> int:
         print("-------------------------------\n")
         # ------------------------
 
-        # 2. État Global (Shared State)
+       # 2. État Global (Shared State)
         state = AppState()
+        state.set_input_devices(devices)
         print("[INIT] State initialized.")
-
+        
         # 3. Audio (Entrée micro)
         audio = AudioStream(cfg)
         print("[INIT] Audio stream created.")
