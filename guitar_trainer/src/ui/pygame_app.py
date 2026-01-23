@@ -11,7 +11,6 @@ class PygameApp:
         self.state = state
         self.controller = controller
         
-        # Initialisation Pygame
         pygame.init()
         pygame.font.init()
         
@@ -23,34 +22,45 @@ class PygameApp:
         
         self.clock = pygame.time.Clock()
         self.running = False
+        
+        # --- SYSTÈME DE NAVIGATION ---
+        self.screens: dict[str, Screen] = {}
         self.current_screen: Screen | None = None
 
-    def set_screen(self, screen: Screen) -> None:
-        """Change l'écran actif."""
+    def register_screen(self, name: str, screen: Screen) -> None:
+        """Enregistre un écran et lui donne accès à l'app."""
+        screen.set_app(self)
+        self.screens[name] = screen
+
+    def change_screen(self, name: str) -> None:
+        """Transition vers un autre écran."""
+        if name not in self.screens:
+            print(f"[UI ERROR] Screen '{name}' not found.")
+            return
+
+        # 1. Quitter l'ancien
         if self.current_screen:
             self.current_screen.on_exit()
         
-        self.current_screen = screen
+        # 2. Changer
+        self.current_screen = self.screens[name]
+        print(f"[UI] Navigating to '{name}'")
         
+        # 3. Entrer dans le nouveau
         if self.current_screen:
             self.current_screen.on_enter()
 
     def run(self) -> None:
         """Lance la boucle principale."""
         self.running = True
-        
-        # On s'assure que l'audio démarre
         self.controller.start_audio()
         
         while self.running:
-            # dt = Delta Time en secondes (ex: 0.016 pour 60fps)
             dt = self.clock.tick(self.cfg.fps) / 1000.0
-            
             self._handle_events()
             self._update(dt)
             self._draw()
 
-        # Nettoyage à la sortie
         self.controller.stop_audio()
         pygame.quit()
         sys.exit()
@@ -60,23 +70,17 @@ class PygameApp:
             if event.type == pygame.QUIT:
                 self.running = False
             
-            # Passe l'événement à l'écran actif
             if self.current_screen:
                 self.current_screen.handle_event(event)
 
     def _update(self, dt: float) -> None:
-        # 1. Mise à jour du backend (Audio/Analyse)
-        self.controller.update()
-        
-        # 2. Mise à jour de l'UI
+
+        self.controller.update(dt)
         if self.current_screen:
             self.current_screen.update(dt)
 
     def _draw(self) -> None:
-        # Fond noir par défaut
         self.screen_surface.fill((10, 10, 10))
-        
         if self.current_screen:
             self.current_screen.draw(self.screen_surface)
-            
         pygame.display.flip()

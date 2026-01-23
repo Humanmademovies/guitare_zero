@@ -5,11 +5,16 @@ from .audio.stream import AudioStream
 from .audio.devices import list_input_devices, list_output_devices
 from .core.controller import AppController
 from .ui.pygame_app import PygameApp
+
+# Import des écrans
 from .ui.screens.tuner_screen import TunerScreen
+from .ui.screens.menu_screen import MenuScreen
+from .ui.screens.game_screen import GameScreen
+from .ui.screens.game_setup_screen import GameSetupScreen
 
 def main() -> int:
     print("--------------------------------------------------")
-    print("Guitar Trainer MVP - Initialization")
+    print("Guitar Trainer - Initialization")
     print("--------------------------------------------------")
 
     try:
@@ -28,7 +33,6 @@ def main() -> int:
         print("-------------------------------\n")
 
         state = AppState()
-        # On stocke les inputs et outputs pour le switch dynamique
         state.set_input_devices(list_input_devices())
         state.set_output_devices(list_output_devices())
         
@@ -43,10 +47,22 @@ def main() -> int:
         app = PygameApp(cfg, state, controller)
         print("[INIT] UI Engine created.")
 
+        # --- CRÉATION DES ÉCRANS ---
+        menu_screen = MenuScreen(cfg, state, controller)
         tuner_screen = TunerScreen(cfg, state, controller)
+        game_screen = GameScreen(cfg, state, controller)
+        setup_screen = GameSetupScreen(cfg, state, controller)
         
-        app.set_screen(tuner_screen)
+        # --- ENREGISTREMENT ---
+        app.register_screen("menu", menu_screen)
+        app.register_screen("tuner", tuner_screen)
+        app.register_screen("game", game_screen)
+        app.register_screen("setup", setup_screen)
+        
+        # --- DÉMARRAGE SUR LE MENU ---
+        app.change_screen("menu")
         print("[INIT] Starting Main Loop...")
+        
         app.run()
 
     except KeyboardInterrupt:

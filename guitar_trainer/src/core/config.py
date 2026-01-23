@@ -4,7 +4,7 @@ from dataclasses import dataclass
 class AppConfig:
     # --- Audio ---
     sample_rate: int = 44100
-    block_size: int = 512  # On baisse un peu pour réduire la latence (était 1024)
+    block_size: int = 1024  # On baisse un peu pour réduire la latence (était 1024)
     channels: int = 1
     
     # Entrée (Micro / Câble Guitare)
