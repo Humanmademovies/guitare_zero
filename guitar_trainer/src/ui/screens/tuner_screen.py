@@ -1,89 +1,131 @@
 import pygame
+import numpy as np
 from .base import Screen
-from ..widgets.text import TextLabel
-from ..widgets.vu_meter import VUMeter
+from ..widgets.visualizers import SpectrogramWidget, OscilloscopeWidget
+from ..widgets.labels import TextLabel
+from ..widgets.meter import VUMeter
 from ..widgets.status_light import StatusLight
 from ..widgets.knob import Knob
-import math
 
 class TunerScreen(Screen):
     def __init__(self, cfg, state, controller):
         super().__init__(cfg, state, controller)
         
-        # Initialisation des Polices (Agrandies pour la nouvelle résolution)
-        self.font_big = pygame.font.SysFont("monospace", 150, bold=True)
-        self.font_small = pygame.font.SysFont("monospace", 35)
+        W, H = cfg.window_size
+        CX = W // 2
         
-        W, H = cfg.window_size # (1600, 1200)
-        CX, CY = W // 2, H // 2
+        MARGIN_X = int(W * 0.05)
+        VIZ_Y    = int(H * 0.30)
+        VIZ_H    = int(H * 0.40)
+        CTRL_Y   = int(H * 0.75)
+        CTRL_H   = int(H * 0.20)
 
-        # --- Définition des Zones (Phase 1) ---
-        
-        # Zone Visualisation (Centre) - Rectangle pour accueillir Spectro/Oscillo
-        self.rect_viz = pygame.Rect(50, 350, W - 100, 500)
-        
-        # Zone Contrôles (Bas) - Rectangle pour accueillir Potards/VU
-        self.rect_ctrl = pygame.Rect(50, 900, W - 100, 250)
+        self.rect_viz = pygame.Rect(MARGIN_X, VIZ_Y, W - (2 * MARGIN_X), VIZ_H)
+        self.rect_ctrl = pygame.Rect(MARGIN_X, CTRL_Y, W - (2 * MARGIN_X), CTRL_H)
 
-        # --- Création et repositionnement des Widgets ---
+        font_big_size = int(H * 0.12)  
+        font_small_size = int(H * 0.03)
+        self.font_big = pygame.font.SysFont("monospace", font_big_size, bold=True)
+        self.font_small = pygame.font.SysFont("monospace", font_small_size)
+
+        self.spectro_widget = SpectrogramWidget(self.rect_viz, max_history=state.max_history)
+        self.oscillo_widget = OscilloscopeWidget(self.rect_viz)
+
+        self.lbl_note = TextLabel(self.font_big, (CX, int(H * 0.12)), align="center")
+        self.lbl_info = TextLabel(self.font_small, (CX, int(H * 0.23)), align="center")
         
-        # 1. Note Principale (Haut - Zone Feedback)
-        self.lbl_note = TextLabel(self.font_big, (CX, 150), align="center")
+        # VU Meter à gauche
+        vu_w = 40
+        vu_h = int(self.rect_ctrl.height * 0.7)
+        vu_x = self.rect_ctrl.x + 30
+        vu_y = self.rect_ctrl.centery - (vu_h // 2)
         
-        # 2. Infos techniques (Hz / Cents) - sous la note
-        self.lbl_info = TextLabel(self.font_small, (CX, 280), align="center")
-        
-        # 3. VU Mètre (déplacé dans la zone de contrôle)
-        self.vu_meter = VUMeter(80, 950, 40, 180)
-        self.lbl_vu = TextLabel(self.font_small, (100, 920), align="center")
+        self.vu_meter = VUMeter(vu_x, vu_y, vu_w, vu_h)
+        self.lbl_vu = TextLabel(self.font_small, (vu_x + vu_w//2, vu_y + vu_h + 10), align="center")
         self.lbl_vu.set_text("MIC")
         
-        # 4. Voyant de stabilité (Repositionné en haut à droite)
-        self.status_light = StatusLight((W - 80, 80), 25)
-        self.lbl_stable = TextLabel(self.font_small, (W - 130, 65), align="topright")
+        # --- 5 POTARDS ---
+        start_x = self.rect_ctrl.x + 120
+        width_available = self.rect_ctrl.width - 140
+        knob_y = self.rect_ctrl.centery
+        knob_radius = int(self.rect_ctrl.height * 0.22)
+        
+        # On divise l'espace en 5 colonnes
+        step = width_available / 5
+        
+        # 1. GATE
+        k1_x = start_x + step * 0.5
+        self.knob_gate = Knob(int(k1_x), knob_y, knob_radius, "GATE", cfg.rms_threshold, 0.0, 1.0)
+        
+        # 2. PURITY (Analyse)
+        k2_x = start_x + step * 1.5
+        self.knob_pure = Knob(int(k2_x), knob_y, knob_radius, "PURE", cfg.flatness_threshold, 0.0, 1.0)
+
+        # 3. DRIVE (Disto)
+        k3_x = start_x + step * 2.5
+        self.knob_drive = Knob(int(k3_x), knob_y, knob_radius, "DRIVE", 0.0, 0.0, 1.0)
+        
+        # 4. TONE (Filtre LowPass) - NOUVEAU
+        # Initialisé à 0.8 (assez brillant mais filtre un peu les extrêmes)
+        k4_x = start_x + step * 3.5
+        self.knob_tone = Knob(int(k4_x), knob_y, knob_radius, "TONE", 0.8, 0.0, 1.0)
+
+        # 5. VOLUME
+        k5_x = start_x + step * 4.5
+        self.knob_vol = Knob(int(k5_x), knob_y, knob_radius, "VOL", 0.8, 0.0, 1.0)
+
+        self.status_light = StatusLight((W - 50, 50), 20)
+        self.lbl_stable = TextLabel(self.font_small, (W - 80, 40), align="topright")
         self.lbl_stable.set_text("STABLE")
-        # Potards de contrôle (Valeurs optimisées pour guitare électrique)
-        # Gate Vol : 0.0 à 0.02 (le signal d'une guitare est souvent très bas en RMS)
-        self.knob_vol = Knob(400, 1025, 60, "NOISE GATE", cfg.rms_threshold, 0.0, 1.0)
-        # Purity : 0.0 (Pure) à 0.5 (Bruit) - La zone utile dépasse rarement 0.3
-        self.knob_pure = Knob(650, 1025, 60, "PURITY", cfg.flatness_threshold, 0.0, 1.0)
 
     def handle_event(self, event):
-        # Gestion des potards (Phase 3)
-        self.knob_vol.handle_event(event)
-        self.knob_pure.handle_event(event)
+        # 1. GATE
+        if self.knob_gate.handle_event(event):
+            self.controller.set_audio_gate(self.knob_gate.val)
 
+        # 2. PURITY (Visuel uniquement)
+        self.knob_pure.handle_event(event)
+        
+        # 3. DRIVE
+        if self.knob_drive.handle_event(event):
+            self.controller.set_audio_drive(self.knob_drive.val)
+        
+        # 4. TONE (Nouveau)
+        if self.knob_tone.handle_event(event):
+            self.controller.set_audio_tone(self.knob_tone.val)
+            
+        # 5. VOLUME
+        if self.knob_vol.handle_event(event):
+            self.controller.set_audio_volume(self.knob_vol.val)
+
+        # Clavier
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 self.controller.toggle_audio()
-            # --- RETOUR AU CODE D'ORIGINE ---
+            
             if event.key == pygame.K_RIGHT:
                 self.controller.cycle_input_device(1)
             if event.key == pygame.K_LEFT:
                 self.controller.cycle_input_device(-1)
 
+            if event.key == pygame.K_UP:
+                self.controller.cycle_output_device(1)
+            if event.key == pygame.K_DOWN:
+                self.controller.cycle_output_device(-1)
+
     def update(self, dt: float):
-        # Récupération instantanée de l'état (Thread-Safe)
         feats = self.state.get_features_snapshot()
-        
-        # GARDE : On attend que le moteur audio produise des données
         if feats is None:
             return
         
-        # Mise à jour de l'historique du spectrogramme
-        if feats.spectrum is not None:
-            self.state.spectrogram_history.append(feats.spectrum)
-            if len(self.state.spectrogram_history) > self.state.max_history:
-                self.state.spectrogram_history.pop(0)
-
-        # Les mises à jour de seuils et de labels restent identiques
-        self.cfg.rms_threshold = self.knob_vol.val
+        # Update config analyse
+        self.cfg.rms_threshold = self.knob_gate.val
         self.cfg.flatness_threshold = self.knob_pure.val
+        
         self.vu_meter.set_value(feats.rms)
         self.vu_meter.threshold = self.cfg.rms_threshold
         self.status_light.set_active(feats.stable)
         
-        # 2. Mise à jour Note et Info
         if feats.is_voiced and feats.note_name:
             color = (0, 255, 0) if abs(feats.cents) < 10 else (255, 255, 255)
             self.lbl_note.set_text(feats.note_name, color)
@@ -92,84 +134,59 @@ class TunerScreen(Screen):
             self.lbl_note.set_text("...", (100, 100, 100))
             self.lbl_info.set_text("No Signal")
 
-        # 3. Mise à jour Voyant Stabilité
-        self.status_light.set_active(feats.stable)
-
     def draw(self, surface):
-        # Fond sombre
         surface.fill((15, 15, 20))
         
-        # Récupération sécurisée du snapshot
         feats = self.state.get_features_snapshot()
         
-        # Dessin des cadres de zones
         pygame.draw.rect(surface, (40, 40, 50), self.rect_viz, 2, border_radius=10)
         pygame.draw.rect(surface, (40, 40, 50), self.rect_ctrl, 2, border_radius=10)
         
-        # 1. Dessin du Spectrogramme
-        history = self.state.spectrogram_history
-        if history:
-            num_cols = len(history)
-            col_width = self.rect_viz.width / self.state.max_history
-            num_bins = 120 
-            bin_height = self.rect_viz.height / num_bins
-            
-            for i, spec in enumerate(history):
-                x = self.rect_viz.x + i * col_width
-                for j in range(num_bins):
-                    intensity = min(255, int(math.log1p(spec[j]) * 50))
-                    if intensity > 10:
-                        color = (intensity // 2, intensity, intensity // 4)
-                        y = self.rect_viz.bottom - (j * bin_height)
-                        pygame.draw.rect(surface, color, (x, y - bin_height, int(col_width) + 1, int(bin_height) + 1))
+        history = self.state.get_spectrogram_history()
+        self.spectro_widget.draw(surface, history)
 
-        # 2. Dessin de l'Oscilloscope
-        if feats and feats.samples is not None and len(feats.samples) > 0:
-            points = []
-            step = self.rect_viz.width / len(feats.samples)
-            center_y = self.rect_viz.centery
-            amp = self.rect_viz.height * 0.4
-            for i in range(0, len(feats.samples), 2):
-                px = self.rect_viz.x + i * step
-                py = center_y + feats.samples[i] * amp
-                points.append((px, py))
-            if len(points) > 1:
-                pygame.draw.lines(surface, (0, 255, 255), False, points, 2)
+        if feats:
+            self.oscillo_widget.draw(surface, feats.samples)
 
-        # 3. Effet visuel de STABILITÉ
         if feats and feats.stable:
             glow_color = (0, 255, 100)
             pygame.draw.rect(surface, glow_color, self.rect_viz, 6, border_radius=10)
 
-        # Labels et Widgets
         self.lbl_note.draw(surface)
         self.lbl_info.draw(surface)
         self.vu_meter.draw(surface)
         self.lbl_vu.draw(surface)
         self.status_light.draw(surface)
         self.lbl_stable.draw(surface)
-        self.knob_vol.draw(surface)
-        self.knob_pure.draw(surface)
-
-        # --- CODE D'ORIGINE REPOSITIONNÉ ---
-        dev_name = str(self.cfg.device_name_or_index)
-        txt_dev = self.font_small.render(f"Micro: {dev_name} (Arrows to change)", True, (150, 150, 150))
-        surface.blit(txt_dev, (850, 1100))
-    
-    def _update_device_label(self):
-        # Récupère le nom lisible du device actuel
-        dev_id = self.cfg.device_name_or_index
-        devices = self.state.get_input_devices()
         
-        dev_name = "Unknown"
-        # Si c'est un string (ex: 'H4'), on l'affiche direct
-        if isinstance(dev_id, str):
-            dev_name = dev_id
-        else:
-            # Sinon on cherche dans la liste
-            for d in devices:
-                if d['index'] == dev_id:
-                    dev_name = d['name']
-                    break
-                    
-        self.lbl_device.set_text(f"< {dev_name} >", (100, 200, 255))
+        # Les 5 Potards
+        self.knob_gate.draw(surface)
+        self.knob_pure.draw(surface)
+        self.knob_drive.draw(surface)
+        self.knob_tone.draw(surface) # NOUVEAU
+        self.knob_vol.draw(surface)
+
+        # Infos périphériques
+        in_id = self.cfg.device_name_or_index
+        out_id = self.cfg.output_device_name_or_index
+        
+        in_name = str(in_id)
+        for d in self.state.get_input_devices():
+            if d['index'] == in_id: 
+                in_name = d['name']
+                break
+            
+        out_name = str(out_id) if out_id is not None else "System Default"
+        for d in self.state.get_output_devices():
+            if d['index'] == out_id: 
+                out_name = d['name']
+                break
+
+        txt_in = self.font_small.render(f"In (L/R): {in_name}", True, (150, 150, 150))
+        txt_out = self.font_small.render(f"Out (U/D): {out_name}", True, (150, 150, 150))
+        
+        bottom_margin = 10
+        right_margin = 20
+        
+        surface.blit(txt_out, (self.rect_ctrl.right - txt_out.get_width() - right_margin, self.rect_ctrl.bottom - bottom_margin))
+        surface.blit(txt_in, (self.rect_ctrl.right - txt_in.get_width() - right_margin, self.rect_ctrl.bottom - bottom_margin - 30))

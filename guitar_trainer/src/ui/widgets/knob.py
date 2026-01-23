@@ -2,46 +2,71 @@ import pygame
 import math
 
 class Knob:
-    def __init__(self, x, y, radius, label, initial_val, min_val, max_val):
-        self.rect = pygame.Rect(x - radius, y - radius, radius * 2, radius * 2)
-        self.center = (x, y)
+    def __init__(self, x, y, radius, label, initial_val=0.0, min_val=0.0, max_val=1.0):
+        self.x = x
+        self.y = y
         self.radius = radius
         self.label = label
         self.val = initial_val
         self.min_val = min_val
         self.max_val = max_val
+        
         self.dragging = False
+        self.rect = pygame.Rect(x - radius, y - radius, radius * 2, radius * 2)
+        
         self.font = pygame.font.SysFont("monospace", 20)
 
-    def handle_event(self, event):
+    def handle_event(self, event) -> bool:
+        """Retourne True si la valeur a changé, sinon False."""
+        changed = False
+        
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self.rect.collidepoint(event.pos):
                 self.dragging = True
+        
         elif event.type == pygame.MOUSEBUTTONUP:
             self.dragging = False
-        elif event.type == pygame.MOUSEMOTION and self.dragging:
-            dx = event.pos[0] - self.center[0]
-            dy = event.pos[1] - self.center[1]
-            angle = math.degrees(math.atan2(dy, dx))
-            # Normalisation de l'angle pour obtenir une valeur entre 0 et 1
-            norm_val = (angle + 180) / 360
-            self.val = self.min_val + norm_val * (self.max_val - self.min_val)
-            self.val = max(self.min_val, min(self.max_val, self.val))
+            
+        elif event.type == pygame.MOUSEMOTION:
+            if self.dragging:
+                # Sensibilité : on change la valeur selon le mouvement Y de la souris
+                # Monter la souris = Augmenter la valeur
+                dy = event.rel[1]
+                
+                # Vitesse de changement
+                step = 0.01
+                self.val -= dy * step
+                
+                # Bornage
+                if self.val < self.min_val: self.val = self.min_val
+                if self.val > self.max_val: self.val = self.max_val
+                
+                changed = True
+
+        # --- C'EST ICI QUE ÇA MANQUAIT ---
+        return changed
 
     def draw(self, surface):
-        # Dessin du corps du potard
-        pygame.draw.circle(surface, (60, 60, 70), self.center, self.radius)
-        pygame.draw.circle(surface, (100, 100, 110), self.center, self.radius, 2)
+        # Fond
+        pygame.draw.circle(surface, (50, 50, 60), (self.x, self.y), self.radius)
         
-        # Dessin de l'indicateur (ligne)
-        angle = ((self.val - self.min_val) / (self.max_val - self.min_val) * 360) - 180
-        rad = math.radians(angle)
-        end_x = self.center[0] + math.cos(rad) * self.radius
-        end_y = self.center[1] + math.sin(rad) * self.radius
-        pygame.draw.line(surface, (255, 200, 0), self.center, (end_x, end_y), 3)
+        # Indicateur (Aiguille)
+        # Angle : 0% = -135deg, 100% = +135deg
+        normalized = (self.val - self.min_val) / (self.max_val - self.min_val)
+        angle = -135 + (normalized * 270)
+        rad = math.radians(angle - 90) # -90 pour corriger l'orientation mathématique
         
-        # Libellé et valeur
-        lbl_surf = self.font.render(f"{self.label}", True, (200, 200, 200))
-        val_surf = self.font.render(f"{self.val:.4f}", True, (255, 255, 255))
-        surface.blit(lbl_surf, (self.center[0] - lbl_surf.get_width()//2, self.center[1] + self.radius + 10))
-        surface.blit(val_surf, (self.center[0] - val_surf.get_width()//2, self.center[1] + self.radius + 30))
+        end_x = self.x + math.cos(rad) * (self.radius * 0.8)
+        end_y = self.y + math.sin(rad) * (self.radius * 0.8)
+        
+        line_color = (0, 255, 255) # Cyan
+        pygame.draw.line(surface, line_color, (self.x, self.y), (end_x, end_y), 3)
+        
+        # Label
+        lbl = self.font.render(self.label, True, (200, 200, 200))
+        surface.blit(lbl, (self.x - lbl.get_width()//2, self.y + self.radius + 10))
+        
+        # Valeur numérique (Optionnel mais pratique pour debug)
+        val_txt = f"{self.val:.2f}"
+        lbl_val = self.font.render(val_txt, True, (150, 150, 150))
+        surface.blit(lbl_val, (self.x - lbl_val.get_width()//2, self.y + self.radius + 30))

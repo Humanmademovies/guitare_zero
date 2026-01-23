@@ -5,6 +5,9 @@ import sounddevice as sd
 from ..core.config import AppConfig
 from ..core.types import AudioBlock
 
+# On veut que ça plante si le fichier ou la librairie n'est pas là !
+from .processor import AudioProcessor
+
 class AudioStream:
     def __init__(self, cfg: AppConfig):
         self.cfg = cfg
@@ -12,29 +15,43 @@ class AudioStream:
         self.stream = None
         self.running = False
         self._last_rms = 0.0
+        
+        self.processor = None
 
     def start(self) -> None:
         if self.running:
             return
         
-        device_index = self.cfg.device_name_or_index
-        if isinstance(device_index, str):
-            # Petit fix temporaire si resolve n'est pas appelé avant
-            from .devices import resolve_input_device
-            device_index = resolve_input_device(device_index)
+        # Résolution des périphériques
+        from .devices import resolve_device_index
+        
+        dev_in = resolve_device_index(self.cfg.device_name_or_index, 'input')
+        dev_out = resolve_device_index(self.cfg.output_device_name_or_index, 'output')
+        
+        print(f"[AUDIO START] Requesting Devices -> In: {dev_in}, Out: {dev_out} @ {self.cfg.sample_rate}Hz")
+
+        # --- Recharger le Processeur ---
+        # On utilise self.cfg ici !
+        print("[DEBUG] Attempting to load AudioProcessor...")
+        self.processor = AudioProcessor(self.cfg.sample_rate, self.cfg.block_size)
+        print("[AUDIO] Pedalboard Processor initialized SUCCESS.")
+        # -------------------------------
 
         try:
-            self.stream = sd.InputStream(
-                device=device_index,
+            self.stream = sd.Stream(
+                device=(dev_in, dev_out),
                 channels=self.cfg.channels,
                 samplerate=self.cfg.sample_rate,
                 blocksize=self.cfg.block_size,
-                dtype='float32',  # Important pour l'analyse
+                dtype='float32',
                 callback=self._callback
             )
             self.stream.start()
             self.running = True
-            print(f"[AUDIO] Stream started on device {device_index} (SR={self.cfg.sample_rate})")
+            
+            latency = self.stream.latency[1] * 1000 if self.stream.latency else 0
+            print(f"[AUDIO] Stream started. Output Latency: ~{latency:.2f} ms")
+            
         except Exception as e:
             print(f"[AUDIO CRITICAL] Failed to start stream: {e}")
             self.running = False
@@ -55,25 +72,16 @@ class AudioStream:
         return self.queue
 
     def get_last_rms(self) -> float:
-        """Pour affichage VU-mètre rapide (accédé par UI)."""
         return self._last_rms
 
-    def _callback(self, indata, frames, time_info, status):
-        """
-        Appelé par le thread audio système. 
-        Doit être ULTRA RAPIDE : pas de print lourds, pas de calculs complexes.
-        """
+    def _callback(self, indata, outdata, frames, time_info, status):
         if status:
-            print(f"[AUDIO XRUN] {status}")
+            pass # Ignorer les erreurs xrun pour l'instant
 
-        # On aplatit le tableau pour avoir un vecteur 1D propre (ex: [1024])
-        # .copy() est obligatoire car indata est recyclé par le driver
+        # 1. Copie pour Analyse
         samples = indata.flatten().copy()
-        
-        # Calcul RMS léger immédiat pour retour visuel
         self._last_rms = self._compute_rms(samples)
 
-        # On empile pour l'analyseur (qui tournera dans son thread)
         block = AudioBlock(
             samples=samples,
             sample_rate=self.cfg.sample_rate,
@@ -82,8 +90,39 @@ class AudioStream:
         try:
             self.queue.put_nowait(block)
         except queue.Full:
-            pass # Si l'analyse traîne, on jette les frames (drop) plutôt que crasher l'audio
+            pass
+
+        # 2. Traitement Audio
+        if self.processor:
+            try:
+                # Transpose pour pedalboard: (channels, samples)
+                input_matrix = indata.T
+                processed_matrix = self.processor.process(input_matrix)
+                outdata[:] = processed_matrix.T
+            except Exception:
+                # Fallback en cas de crash du plugin : Bypass (Son clair)
+                outdata[:] = indata
+        else:
+            # Pas de processeur : Bypass (Son clair)
+            # Auparavant c'était silence (0), maintenant on laisse passer le son
+            outdata[:] = indata
 
     def _compute_rms(self, samples: np.ndarray) -> float:
-        # Root Mean Square simple
         return float(np.sqrt(np.mean(samples**2)))
+    
+    def set_gate_threshold(self, value: float) -> None:
+        if self.processor:
+            self.processor.set_gate_threshold(value)
+
+    def set_drive(self, value: float) -> None:
+        print(f"[DEBUG] Setting Drive to {value:.2f} - Processor active? {self.processor is not None}")
+        if self.processor:
+            self.processor.set_drive(value)
+
+    def set_volume(self, value: float) -> None:
+        if self.processor:
+            self.processor.set_volume(value)
+    
+    def set_tone(self, value: float) -> None:
+        if self.processor:
+            self.processor.set_tone(value)

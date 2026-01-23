@@ -29,8 +29,8 @@ RUN pip install "numpy<2"
 RUN CFLAGS="-Wno-error=incompatible-pointer-types" \
     pip install --no-cache-dir --no-build-isolation aubio
 
-# D. On installe le reste
-RUN pip install --no-cache-dir pygame sounddevice
+# D. On installe le reste (Ajout de pedalboard)
+RUN pip install --no-cache-dir pygame sounddevice pedalboard
 
 # 4. Commande de lancement
 CMD ["python", "-m", "src"]

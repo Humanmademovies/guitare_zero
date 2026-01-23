@@ -9,3 +9,5 @@ dependencies:
   - python-sounddevice
   - aubio
   - pip
+  - pip:
+      - pedalboard

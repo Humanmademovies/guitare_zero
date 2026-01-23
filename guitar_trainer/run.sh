@@ -22,7 +22,7 @@ if ! conda info --envs | grep -q "$ENV_NAME"; then
     conda env create -f environment.yml
 else
     # Optionnel : Mettre à jour l'env si environment.yml a changé (commenté pour l'instant)
-    # conda env update -f environment.yml --prune
+    conda env update -f environment.yml --prune
     echo "Environnement '$ENV_NAME' détecté."
 fi
 

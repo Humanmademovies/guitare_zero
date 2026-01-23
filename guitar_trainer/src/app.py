@@ -2,7 +2,7 @@ import sys
 from .core.config import load_config, validate_config
 from .core.state import AppState
 from .audio.stream import AudioStream
-from .audio.devices import list_input_devices # Nouvel import
+from .audio.devices import list_input_devices, list_output_devices
 from .core.controller import AppController
 from .ui.pygame_app import PygameApp
 from .ui.screens.tuner_screen import TunerScreen
@@ -13,40 +13,38 @@ def main() -> int:
     print("--------------------------------------------------")
 
     try:
-        # 1. Configuration
         cfg = load_config()
         validate_config(cfg)
         print("[INIT] Config loaded.")
 
-        # --- DIAGNOSTIC AUDIO ---
-        print("\n--- Available Input Devices ---")
-        devices = list_input_devices()
-        for dev in devices:
-            print(f"Index {dev['index']}: {dev['name']} (Channels: {dev['channels']}, SR: {dev['samplerate']})")
+        # --- DIAGNOSTIC AUDIO COMPLET ---
+        print("\n--- INPUT Devices (Micros) ---")
+        for dev in list_input_devices():
+            print(f"Index {dev['index']}: {dev['name']} (Ch: {dev['channels']}, SR: {dev['samplerate']})")
+            
+        print("\n--- OUTPUT Devices (Speakers) ---")
+        for dev in list_output_devices():
+            print(f"Index {dev['index']}: {dev['name']} (Ch: {dev['channels']}, SR: {dev['samplerate']})")
         print("-------------------------------\n")
-        # ------------------------
 
-       # 2. État Global (Shared State)
         state = AppState()
-        state.set_input_devices(devices)
+        # On stocke les inputs et outputs pour le switch dynamique
+        state.set_input_devices(list_input_devices())
+        state.set_output_devices(list_output_devices())
+        
         print("[INIT] State initialized.")
         
-        # 3. Audio (Entrée micro)
         audio = AudioStream(cfg)
         print("[INIT] Audio stream created.")
 
-        # 4. Contrôleur (Orchestrateur)
         controller = AppController(cfg, state, audio)
         print("[INIT] Controller ready.")
 
-        # 5. UI (Moteur graphique)
         app = PygameApp(cfg, state, controller)
         print("[INIT] UI Engine created.")
 
-        # 6. Création de l'écran principal (Tuner)
         tuner_screen = TunerScreen(cfg, state, controller)
         
-        # 7. Lancement
         app.set_screen(tuner_screen)
         print("[INIT] Starting Main Loop...")
         app.run()

@@ -4,18 +4,24 @@ from dataclasses import dataclass
 class AppConfig:
     # --- Audio ---
     sample_rate: int = 44100
-    block_size: int = 1024
+    block_size: int = 512  # On baisse un peu pour réduire la latence (était 1024)
     channels: int = 1
-    device_name_or_index: str | int | None = "H4"
+    
+    # Entrée (Micro / Câble Guitare)
+    device_name_or_index: str | int | None = "H4" 
+    
+    # Sortie (Enceintes PC) - Nouveau !
+    # Mets None pour laisser le système choisir, ou l'index/nom de tes enceintes
+    output_device_name_or_index: str | int | None = None 
     
     # --- Analyse (Pitch & Features) ---
     fmin: float = 40.0
     fmax: float = 2000.0
     confidence_threshold: float = 0.2
     rms_threshold: float = 0.001
-    flatness_threshold: float = 0.15   # Seuil de pureté : < 0.15 = Note, > 0.15 = Bruit
+    flatness_threshold: float = 0.15
     
-    # --- Stabilité (Gameplay) ---
+    # --- Stabilité ---
     stable_window_ms: float = 500.0
     stable_cents_tolerance: float = 15.0
     
