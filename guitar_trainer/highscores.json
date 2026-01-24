@@ -1,8 +1,38 @@
 [
     {
+        "score": 7960,
+        "date": "24/01 00:35",
+        "difficulty": "x2.2"
+    },
+    {
+        "score": 7765,
+        "date": "24/01 00:32",
+        "difficulty": "x1.5"
+    },
+    {
+        "score": 7336,
+        "date": "24/01 00:33",
+        "difficulty": "x2.2"
+    },
+    {
+        "score": 5463,
+        "date": "24/01 00:52",
+        "difficulty": "x1.0"
+    },
+    {
         "score": 5089,
         "date": "24/01 00:21",
         "difficulty": "x1.2"
+    },
+    {
+        "score": 4983,
+        "date": "24/01 00:43",
+        "difficulty": "x1.1"
+    },
+    {
+        "score": 4662,
+        "date": "24/01 00:31",
+        "difficulty": "x1.0"
     },
     {
         "score": 4458,
@@ -10,8 +40,13 @@
         "difficulty": "x1.5"
     },
     {
-        "score": 3139,
-        "date": "24/01 00:19",
+        "score": 4401,
+        "date": "24/01 00:29",
+        "difficulty": "x1.5"
+    },
+    {
+        "score": 3687,
+        "date": "24/01 00:40",
         "difficulty": "x1.0"
     }
 ]

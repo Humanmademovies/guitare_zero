@@ -129,12 +129,8 @@ class GameScreen(Screen):
         # 3. HUD
         self._draw_hud(surface)
 
-        # 4. AIDE
-        if self.controller.game_engine.settings.show_helper:
-            self._draw_tab_helper(surface)
-        else:
-            txt = self.font_small.render("[MODE AVEUGLE]", True, (255, 200, 50))
-            surface.blit(txt, (self.cx - txt.get_width()//2, int(self.H * 0.15)))
+        # 4. AIDE (Correction : On l'appelle TOUJOURS, c'est dedans qu'on trie)
+        self._draw_tab_helper(surface)
         
         # 5. CONTROLES
         pygame.draw.rect(surface, (20, 20, 30), self.rect_ctrl)
@@ -231,13 +227,21 @@ class GameScreen(Screen):
         pygame.draw.rect(surface, (10, 30, 40), rect, border_radius=15)
         pygame.draw.rect(surface, (0, 200, 200), rect, 2, border_radius=15)
         
+        # 1. LA NOTE (TOUJOURS VISIBLE)
         txt_note = self.font_score.render(f"NOTE: {note_name}", True, (255, 255, 255))
         surface.blit(txt_note, (self.cx - txt_note.get_width()//2, panel_y + 10))
         
-        helper_str = f"CORDE {string_num}   |   CASE {fret_num}"
-        txt_col = (0, 255, 0) if engine.state == "SUCCESS" else (255, 200, 50)
-        if engine.state == "MISS": txt_col = (255, 0, 0)
-        
+        # 2. L'AIDE (CONDITIONNELLE)
+        if engine.settings.show_helper:
+            # Mode Normal : On donne la solution
+            helper_str = f"CORDE {string_num}   |   CASE {fret_num}"
+            txt_col = (0, 255, 0) if engine.state == "SUCCESS" else (255, 200, 50)
+            if engine.state == "MISS": txt_col = (255, 0, 0)
+        else:
+            # Mode Aveugle : On cache la solution
+            helper_str = "? ? ?"
+            txt_col = (255, 50, 50) # Rouge pour montrer que c'est Hardcore
+
         txt_help = self.font_tab.render(helper_str, True, txt_col)
         surface.blit(txt_help, (self.cx - txt_help.get_width()//2, panel_y + panel_h//2 + 10))
 
