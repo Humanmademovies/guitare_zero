@@ -1,52 +1,52 @@
 [
     {
+        "score": 11060,
+        "date": "30/01 23:03",
+        "difficulty": "x2.7"
+    },
+    {
+        "score": 10456,
+        "date": "28/01 20:38",
+        "difficulty": "x2.7"
+    },
+    {
+        "score": 8206,
+        "date": "30/01 23:09",
+        "difficulty": "x1.4"
+    },
+    {
+        "score": 8195,
+        "date": "30/01 23:01",
+        "difficulty": "x2.7"
+    },
+    {
+        "score": 8171,
+        "date": "27/01 21:43",
+        "difficulty": "x1.4"
+    },
+    {
+        "score": 8168,
+        "date": "28/01 20:33",
+        "difficulty": "x2.2"
+    },
+    {
+        "score": 8051,
+        "date": "04/02 08:53",
+        "difficulty": "x3.0"
+    },
+    {
+        "score": 7971,
+        "date": "28/01 20:32",
+        "difficulty": "x2.2"
+    },
+    {
         "score": 7960,
         "date": "24/01 00:35",
         "difficulty": "x2.2"
     },
     {
-        "score": 7765,
-        "date": "24/01 00:32",
-        "difficulty": "x1.5"
-    },
-    {
-        "score": 7336,
-        "date": "24/01 00:33",
-        "difficulty": "x2.2"
-    },
-    {
-        "score": 5463,
-        "date": "24/01 00:52",
-        "difficulty": "x1.0"
-    },
-    {
-        "score": 5089,
-        "date": "24/01 00:21",
-        "difficulty": "x1.2"
-    },
-    {
-        "score": 4983,
-        "date": "24/01 00:43",
-        "difficulty": "x1.1"
-    },
-    {
-        "score": 4662,
-        "date": "24/01 00:31",
-        "difficulty": "x1.0"
-    },
-    {
-        "score": 4458,
-        "date": "24/01 00:23",
-        "difficulty": "x1.5"
-    },
-    {
-        "score": 4401,
-        "date": "24/01 00:29",
-        "difficulty": "x1.5"
-    },
-    {
-        "score": 3687,
-        "date": "24/01 00:40",
-        "difficulty": "x1.0"
+        "score": 7831,
+        "date": "27/01 21:38",
+        "difficulty": "x2.1"
     }
 ]
