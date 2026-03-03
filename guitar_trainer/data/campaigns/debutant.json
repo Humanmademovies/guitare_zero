@@ -8,6 +8,7 @@
             "type": "tuner",
             "next_quest": "q2",
             "params": {
+                "max_lives": 0,
                 "tolerance_cents": 3,
                 "required_stability_frames": 30
             }
@@ -20,7 +21,8 @@
             "params": {
                 "tempo": 60,
                 "tolerance_timing": 0.25,
-                "tolerance_pitch": 5,
+                "tolerance_pitch": 10,
+                "max_lives": 0,
                 "sequence": [
                     {"beat": 1.0, "string": 6, "fret": 0},
                     {"beat": 2.0, "string": 6, "fret": 1},

@@ -49,7 +49,8 @@ def main() -> int:
 
         app = PygameApp(cfg, state, controller)
         print("[INIT] UI Engine created.")
-
+	
+        controller.app = app
         # --- CRÉATION DES ÉCRANS ---
         menu_screen = MenuScreen(cfg, state, controller)
         tuner_screen = TunerScreen(cfg, state, controller)

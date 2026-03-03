@@ -62,22 +62,25 @@ class GameScreen(Screen):
         
         self.lbl_detected = TextLabel(self.font_info, (self.cx, self.H_GAME + 25), align="center")
         self.lbl_detected.set_text("Waiting...", (100, 100, 100))
+        # Garde seulement ça pour le dessin
+        self.y_hit = int(self.neck_bottom_y * 0.9)
 
     def handle_event(self, event):
         engine = self.controller.game_engine
 
         # 1. Gestion des Écrans de Fin
         if engine.state in ["GAME_OVER", "VICTORY"]:
-            # Clic ou Touche = Retour Setup
             if event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
-                self.app.change_screen("setup")
-            return
+                target = "quest_result" if engine.quest_mode else "setup"
+                self.app.change_screen(target)
+                return
 
         # 2. Navigation
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 engine.stop_game()
-                self.app.change_screen("menu")
+                target = "quest_list" if engine.quest_mode else "menu"
+                self.app.change_screen(target)
                 return
             
             # Audio Device
@@ -181,35 +184,62 @@ class GameScreen(Screen):
 
     def _draw_target(self, surface):
         engine = self.controller.game_engine
-        if engine.state == "IDLE" or (engine.target_position is None and engine.state != "MISS"):
+        
+        # En mode Arcade, on utilise l'ancienne logique de dessin unique
+        if not engine.quest_mode:
+            if engine.state == "IDLE" or not engine.target_position: return
+            self._draw_single_note(surface, engine.target_position, engine.state, engine.state_timer)
             return
-            
-        if not engine.target_position: return
 
-        string_idx, fret_idx = engine.target_position
-        visual_string_idx = 6 - string_idx 
-        
-        progress = min(1.0, engine.state_timer / engine.settings.note_duration)
-        
-        if engine.state == "SUCCESS":
-            progress = 0.9
-            color = COLOR_NOTE_HIT
-            radius = 35 + int(math.sin(pygame.time.get_ticks()*0.02)*5)
-        elif engine.state == "MISS":
-            progress = 0.95
-            color = (255, 0, 0)
-            radius = 30
-        else:
-            color = COLOR_NOTE_TARGET
-            radius = 30
+        # En mode Quête, on dessine tout le pipeline
+        for n in engine.active_notes:
+            beats_left = n["beat"] - engine.song_time_beats
             
+            # Calcul Y : 4.0 beats de distance entre haut et impact
+            # y_hit est la ligne d'impact, neck_top_y est le sommet
+            pixels_per_beat = (self.y_hit - self.neck_top_y) / 4.0
+            y = self.y_hit - (beats_left * pixels_per_beat)
+            
+            # Calcul Perspective X (0.0 en haut, 0.9 à l'impact)
+            progress = max(0.0, 0.9 - (beats_left * 0.225)) # 0.9 / 4.0 = 0.225
+            
+            # Couleur selon statut
+            if n["status"] == "hit": color = COLOR_NOTE_HIT
+            elif n["status"] == "missed": color = (255, 0, 0)
+            else: color = COLOR_NOTE_TARGET
+            
+            # Position X
+            visual_string_idx = 6 - n["string"]
+            current_neck_w = self.neck_top_w + (self.neck_bottom_w - self.neck_top_w) * progress
+            x = (self.cx - current_neck_w//2) + (current_neck_w * (visual_string_idx / 5.0))
+            
+            # Dessin
+            radius = 30
+            if n["status"] == "hit": radius += int(math.sin(pygame.time.get_ticks()*0.02)*5)
+            
+            pygame.draw.circle(surface, color, (int(x), int(y)), radius)
+            pygame.draw.circle(surface, (255, 255, 255), (int(x), int(y)), radius, 2)
+            
+            # Chiffre de la frette à l'intérieur
+            txt_f = self.font_small.render(str(n["fret"]), True, (0, 0, 0) if n["status"] == "hit" else (255, 255, 255))
+            surface.blit(txt_f, (x - txt_f.get_width()//2, y - txt_f.get_height()//2))
+
+    def _draw_single_note(self, surface, pos, state, timer):
+        """Helper pour garder le mode Arcade fonctionnel."""
+        engine = self.controller.game_engine
+        string_idx, fret_idx = pos
+        visual_string_idx = 6 - string_idx
+        progress = min(1.0, timer / engine.settings.note_duration)
+        if state == "SUCCESS": progress = 0.9
+        elif state == "MISS": progress = 0.95
+        
         y = self.neck_top_y + (self.neck_bottom_y - self.neck_top_y) * progress
         current_neck_w = self.neck_top_w + (self.neck_bottom_w - self.neck_top_w) * progress
-        factor = visual_string_idx / 5.0
-        x = (self.cx - current_neck_w//2) + (current_neck_w * factor)
+        x = (self.cx - current_neck_w//2) + (current_neck_w * ((6-string_idx) / 5.0))
         
-        pygame.draw.circle(surface, color, (int(x), int(y)), radius)
-        pygame.draw.circle(surface, (255, 255, 255), (int(x), int(y)), radius, 3)
+        color = COLOR_NOTE_HIT if state == "SUCCESS" else (255, 0, 0) if state == "MISS" else COLOR_NOTE_TARGET
+        pygame.draw.circle(surface, color, (int(x), int(y)), 30)
+        pygame.draw.circle(surface, (255, 255, 255), (int(x), int(y)), 30, 2)
 
     def _draw_tab_helper(self, surface):
         engine = self.controller.game_engine
@@ -269,7 +299,7 @@ class GameScreen(Screen):
 
         if engine.state == "SUCCESS":
             msg = self.font_score.render("PARFAIT !", True, (0, 255, 0))
-            surface.blit(msg, (self.cx - msg.get_width()//2, self.H_GAME * 0.6))
+            surface.blit(msg, (self.cx - msg.get_width()//2, 20)) # Tout en haut
         elif engine.state == "MISS":
             msg = self.font_score.render("RATÉ !", True, (255, 0, 0))
             surface.blit(msg, (self.cx - msg.get_width()//2, self.H_GAME * 0.6))

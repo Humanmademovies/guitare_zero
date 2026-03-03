@@ -8,7 +8,7 @@ class CampaignManager:
         self.save_path = os.path.join(base_path, save_path)
         
         self.campaigns = {}
-        self.unlocked_quests = {}
+        self.progress = {} 
         
         self._load_campaigns()
         self._load_progress()
@@ -33,31 +33,64 @@ class CampaignManager:
         if os.path.exists(self.save_path):
             try:
                 with open(self.save_path, "r", encoding="utf-8") as f:
-                    self.unlocked_quests = json.load(f)
+                    raw_data = json.load(f)
+                    # Sécurité : Si l'ancien format était une liste globale, on reset
+                    if isinstance(raw_data, dict):
+                        self.progress = raw_data
+                    else:
+                        self.progress = {}
             except Exception:
-                pass
-                
-        # Assure que la première quête de chaque campagne est débloquée par défaut
+                self.progress = {}
+        
+        # Migration et Initialisation pour chaque campagne
         for camp_id, camp_data in self.campaigns.items():
-            if camp_id not in self.unlocked_quests:
-                first_quest = camp_data.get("quests", [])
-                if first_quest:
-                    self.unlocked_quests[camp_id] = [first_quest[0]["id"]]
+            # Si la campagne n'existe pas dans le save
+            if camp_id not in self.progress:
+                first_q = camp_data.get("quests", [])[0]["id"] if camp_data.get("quests") else None
+                self.progress[camp_id] = {
+                    "unlocked": [first_q] if first_q else [],
+                    "scores": {}
+                }
+            # Si la campagne existe mais est au vieux format (une liste au lieu d'un dict)
+            elif isinstance(self.progress[camp_id], list):
+                old_list = self.progress[camp_id]
+                self.progress[camp_id] = {
+                    "unlocked": old_list,
+                    "scores": {}
+                }
 
     def save_progress(self):
         with open(self.save_path, "w", encoding="utf-8") as f:
-            json.dump(self.unlocked_quests, f, indent=4)
+            json.dump(self.progress, f, indent=4)
 
     def unlock_quest(self, campaign_id, quest_id):
-        if campaign_id in self.campaigns and quest_id:
-            if campaign_id not in self.unlocked_quests:
-                self.unlocked_quests[campaign_id] = []
-            if quest_id not in self.unlocked_quests[campaign_id]:
-                self.unlocked_quests[campaign_id].append(quest_id)
+        if campaign_id in self.progress:
+            if quest_id not in self.progress[campaign_id]["unlocked"]:
+                self.progress[campaign_id]["unlocked"].append(quest_id)
                 self.save_progress()
 
+    def save_quest_score(self, campaign_id, quest_id, percent):
+        if campaign_id in self.progress:
+            # On s'assure que la structure des scores existe
+            if "scores" not in self.progress[campaign_id]:
+                self.progress[campaign_id]["scores"] = {}
+                
+            current_best = self.progress[campaign_id]["scores"].get(quest_id, 0.0)
+            if percent > current_best:
+                self.progress[campaign_id]["scores"][quest_id] = percent
+                self.save_progress()
+
+    def get_quest_score(self, campaign_id, quest_id):
+        camp_data = self.progress.get(campaign_id, {})
+        if isinstance(camp_data, dict):
+            return camp_data.get("scores", {}).get(quest_id, None)
+        return None
+
     def is_unlocked(self, campaign_id, quest_id):
-        return quest_id in self.unlocked_quests.get(campaign_id, [])
+        camp_data = self.progress.get(campaign_id, {})
+        if isinstance(camp_data, dict):
+            return quest_id in camp_data.get("unlocked", [])
+        return False
 
     def get_campaign(self, campaign_id):
         return self.campaigns.get(campaign_id)

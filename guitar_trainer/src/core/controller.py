@@ -12,7 +12,7 @@ class AppController:
         self.state = state
         self.audio = audio
         self.extractor = FeatureExtractor(cfg)
-        self.game_engine = GameEngine(cfg)
+        self.game_engine = GameEngine(cfg, controller=self)
         self.campaign_manager = CampaignManager()	
 	
     def start_audio(self) -> None:
