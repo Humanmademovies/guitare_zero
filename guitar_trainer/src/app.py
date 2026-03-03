@@ -11,6 +11,9 @@ from .ui.screens.tuner_screen import TunerScreen
 from .ui.screens.menu_screen import MenuScreen
 from .ui.screens.game_screen import GameScreen
 from .ui.screens.game_setup_screen import GameSetupScreen
+from .ui.screens.campaign_menu_screen import CampaignMenuScreen
+from .ui.screens.quest_list_screen import QuestListScreen
+from .ui.screens.quest_result_screen import QuestResultScreen
 
 def main() -> int:
     print("--------------------------------------------------")
@@ -54,11 +57,13 @@ def main() -> int:
         setup_screen = GameSetupScreen(cfg, state, controller)
         
         # --- ENREGISTREMENT ---
-        app.register_screen("menu", menu_screen)
-        app.register_screen("tuner", tuner_screen)
-        app.register_screen("game", game_screen)
-        app.register_screen("setup", setup_screen)
-        
+        app.register_screen("menu", MenuScreen(cfg, state, controller))
+        app.register_screen("tuner", TunerScreen(cfg, state, controller))
+        app.register_screen("game", GameScreen(cfg, state, controller))
+        app.register_screen("setup", GameSetupScreen(cfg, state, controller))
+        app.register_screen("campaign_menu", CampaignMenuScreen(cfg, state, controller))
+        app.register_screen("quest_list", QuestListScreen(cfg, state, controller))
+        app.register_screen("quest_result", QuestResultScreen(cfg, state, controller))
         # --- DÉMARRAGE SUR LE MENU ---
         app.change_screen("menu")
         print("[INIT] Starting Main Loop...")

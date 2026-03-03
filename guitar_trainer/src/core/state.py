@@ -16,7 +16,10 @@ class AppState:
         # Stockage des périphériques
         self._input_devices = []
         self._output_devices = []
-
+        
+        self.selected_campaign_id = None
+        self.selected_quest_id = None
+        
     def update_features(self, f: Features) -> None:
         """
         Appelé par le thread d'analyse.

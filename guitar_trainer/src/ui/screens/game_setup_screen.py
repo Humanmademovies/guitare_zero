@@ -112,6 +112,10 @@ class GameSetupScreen(Screen):
         if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
             self._save_and_play()
             
+        # Touche Echap
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            self.app.change_screen("menu")
+            
     def _update_multiplier_preview(self):
         """Simule les settings pour calculer le score futur."""
         # On crée un objet settings temporaire

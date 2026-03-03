@@ -1,0 +1,34 @@
+{
+    "id": "debutant",
+    "name": "Campagne Débutant",
+    "quests": [
+        {
+            "id": "q1",
+            "name": "Accordage Parfait",
+            "type": "tuner",
+            "next_quest": "q2",
+            "params": {
+                "tolerance_cents": 3,
+                "required_stability_frames": 30
+            }
+        },
+        {
+            "id": "q2",
+            "name": "Échauffement Rythmique",
+            "type": "rhythm",
+            "next_quest": null,
+            "params": {
+                "tempo": 60,
+                "tolerance_timing": 0.25,
+                "tolerance_pitch": 5,
+                "sequence": [
+                    {"beat": 1.0, "string": 6, "fret": 0},
+                    {"beat": 2.0, "string": 6, "fret": 1},
+                    {"beat": 3.0, "string": 6, "fret": 2},
+                    {"beat": 4.0, "string": 6, "fret": 3},
+                    {"beat": 5.0, "string": 6, "fret": 4}
+                ]
+            }
+        }
+    ]
+}

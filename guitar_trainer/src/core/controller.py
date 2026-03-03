@@ -3,8 +3,7 @@ from .config import AppConfig
 from .state import AppState
 from ..audio.stream import AudioStream
 from ..analysis.features import FeatureExtractor
-
-# --- NOUVEAU : Import du Moteur de Jeu ---
+from .campaign import CampaignManager
 from ..game.engine import GameEngine
 
 class AppController:
@@ -13,10 +12,9 @@ class AppController:
         self.state = state
         self.audio = audio
         self.extractor = FeatureExtractor(cfg)
-        
-        # --- NOUVEAU : Instanciation du Jeu ---
         self.game_engine = GameEngine(cfg)
-
+        self.campaign_manager = CampaignManager()	
+	
     def start_audio(self) -> None:
         self.audio.start()
         self.state.set_audio_running(True)
@@ -31,12 +29,11 @@ class AppController:
         else:
             self.start_audio()
 
-    # --- MODIFICATION : Ajout du paramètre dt (delta time) ---
     def update(self, dt: float = 0.016) -> None:
         audio_queue = self.audio.get_queue()
         last_features = None
         
-        # 1. Traitement de la file audio (On vide le buffer)
+
         try:
             while True:
                 block = audio_queue.get_nowait()
@@ -45,16 +42,10 @@ class AppController:
         except queue.Empty:
             pass
 
-        # 2. Si on a de nouvelles données audio
         if last_features is not None:
-            # A. Mise à jour de l'état global (pour le Tuner)
             self.state.update_features(last_features)
-            
-            # B. Mise à jour du Moteur de Jeu (pour l'Arcade)
-            # On lui donne l'analyse audio et le temps écoulé
             self.game_engine.update(last_features, dt)
     
-    # ... (Le reste des méthodes cycle_input_device, etc. reste inchangé) ...
     def cycle_input_device(self, direction: int) -> None:
         devices = self.state.get_input_devices()
         if not devices:

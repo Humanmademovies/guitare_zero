@@ -79,7 +79,30 @@ class TunerScreen(Screen):
         self.status_light = StatusLight((W - 50, 50), 20)
         self.lbl_stable = TextLabel(self.font_small, (W - 80, 40), align="topright")
         self.lbl_stable.set_text("STABLE")
-
+        
+        # État mode quête
+        self.quest_mode = False
+        self.quest_params = None
+        self.tuned_strings = {} 
+        self.stability_counters = {}
+        
+    def on_enter(self):
+        manager = self.controller.campaign_manager
+        camp_id = self.state.selected_campaign_id
+        quest_id = self.state.selected_quest_id
+        
+        if camp_id and quest_id:
+            quest = manager.get_quest(camp_id, quest_id)
+            if quest and quest["type"] == "tuner":
+                self.quest_mode = True
+                self.quest_params = quest["params"]
+                target_notes = ["E2", "A2", "D3", "G3", "B3", "E4"]
+                self.tuned_strings = {n: False for n in target_notes}
+                self.stability_counters = {n: 0 for n in target_notes}
+                return
+        
+        self.quest_mode = False
+        
     def handle_event(self, event):
         # Gestion des potards
         if self.knob_gate.handle_event(event):
@@ -98,10 +121,8 @@ class TunerScreen(Screen):
 
         # Clavier
         if event.type == pygame.KEYDOWN:
-            # --- NAVIGATION RETOUR ---
             if event.key == pygame.K_ESCAPE:
                 self.app.change_screen("menu")
-            # -------------------------
 
             if event.key == pygame.K_SPACE:
                 self.controller.toggle_audio()
@@ -140,6 +161,27 @@ class TunerScreen(Screen):
         else:
             self.lbl_note.set_text("...", (100, 100, 100))
             self.lbl_info.set_text("No Signal")
+        
+        # --- LOGIQUE DE VALIDATION QUÊTE ---
+        if self.quest_mode and feats.is_voiced and feats.note_name in self.tuned_strings:
+            note = feats.note_name
+            if not self.tuned_strings[note]:
+                tol = self.quest_params.get("tolerance_cents", 3)
+                req = self.quest_params.get("required_stability_frames", 30)
+                
+                if abs(feats.cents) <= tol:
+                    self.stability_counters[note] += 1
+                    if self.stability_counters[note] >= req:
+                        self.tuned_strings[note] = True
+                else:
+                    self.stability_counters[note] = 0
+            
+            if all(self.tuned_strings.values()):
+                manager = self.controller.campaign_manager
+                quest = manager.get_quest(self.state.selected_campaign_id, self.state.selected_quest_id)
+                if quest.get("next_quest"):
+                    manager.unlock_quest(self.state.selected_campaign_id, quest["next_quest"])
+                self.app.change_screen("quest_result")
 
     def draw(self, surface):
         surface.fill((15, 15, 20))
@@ -168,6 +210,7 @@ class TunerScreen(Screen):
         self.lbl_vu.draw(surface)
         self.status_light.draw(surface)
         self.lbl_stable.draw(surface)
+        if self.quest_mode: self._draw_quest_status(surface)
         
         # Potards
         self.knob_gate.draw(surface)
@@ -207,3 +250,13 @@ class TunerScreen(Screen):
         # Positionnement
         surface.blit(txt_out, (self.rect_ctrl.right - txt_out.get_width() - right_margin, self.rect_ctrl.bottom - bottom_margin))
         surface.blit(txt_in, (self.rect_ctrl.right - txt_in.get_width() - right_margin, self.rect_ctrl.bottom - bottom_margin - 30))
+        
+    def _draw_quest_status(self, surface):
+        W, H = self.cfg.window_size
+        y, x_start, spacing = int(H * 0.05), int(W * 0.1), int(W * 0.15)
+        for i, (note, tuned) in enumerate(self.tuned_strings.items()):
+            color = (0, 255, 0) if tuned else (100, 100, 100)
+            pos = (x_start + i * spacing, y)
+            pygame.draw.circle(surface, color, pos, 15)
+            txt = self.font_small.render(note, True, (255, 255, 255))
+            surface.blit(txt, (pos[0] - txt.get_width()//2, pos[1] + 20))

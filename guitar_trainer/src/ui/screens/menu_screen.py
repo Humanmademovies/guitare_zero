@@ -19,36 +19,30 @@ class MenuScreen(Screen):
         
         # Boutons (Rectangles simples)
         btn_w, btn_h = int(W * 0.3), int(H * 0.1)
-        self.btn_tuner = pygame.Rect(CX - btn_w//2, CY, btn_w, btn_h)
-        self.btn_arcade = pygame.Rect(CX - btn_w//2, CY + int(H * 0.15), btn_w, btn_h)
+        self.btn_tuner = pygame.Rect(CX - btn_w//2, CY - int(H * 0.1), btn_w, btn_h)
+        self.btn_campaign = pygame.Rect(CX - btn_w//2, CY + int(H * 0.05), btn_w, btn_h)
+        self.btn_arcade = pygame.Rect(CX - btn_w//2, CY + int(H * 0.2), btn_w, btn_h)
         
         self.lbl_tuner = TextLabel(self.font_btn, self.btn_tuner.center, align="center")
         self.lbl_tuner.set_text("L'ATELIER (Tuner)", (255, 255, 255))
+
+        self.lbl_campaign = TextLabel(self.font_btn, self.btn_campaign.center, align="center")
+        self.lbl_campaign.set_text("CAMPAGNE", (0, 255, 255))
         
         self.lbl_arcade = TextLabel(self.font_btn, self.btn_arcade.center, align="center")
-        # COULEUR ACTIVE (Orange vif pour montrer que c'est jouable)
-        self.lbl_arcade.set_text("ARCADE (Jeu)", (255, 200, 50))
+        self.lbl_arcade.set_text("ARCADE (Libre)", (255, 200, 50))
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1: # Clic gauche
                 if self.btn_tuner.collidepoint(event.pos):
-                    # Navigation vers le Tuner
                     self.app.change_screen("tuner")
-                
-                elif self.btn_arcade.collidepoint(event.pos):
-                    # --- LOGIQUE INTELLIGENTE ---
-                    # Si le jeu a déjà été configuré (engine.initialized), on y va direct.
-                    # Sinon, on passe par le Setup.
-                    engine = self.controller.game_engine
                     
-                    if hasattr(engine, 'initialized') and engine.initialized:
-                        # Reprise directe
-                        engine.start_game()
-                        self.app.change_screen("game")
-                    else:
-                        # Première fois -> Setup
-                        self.app.change_screen("setup")
+                elif self.btn_campaign.collidepoint(event.pos):
+                    self.app.change_screen("campaign_menu")
+                    
+                elif self.btn_arcade.collidepoint(event.pos):
+                    self.app.change_screen("setup")
 
     def draw(self, surface):
         surface.fill((20, 20, 30))
@@ -64,3 +58,8 @@ class MenuScreen(Screen):
         pygame.draw.rect(surface, (30, 30, 40), self.btn_arcade, border_radius=10)
         pygame.draw.rect(surface, (255, 200, 50), self.btn_arcade, 2, border_radius=10)
         self.lbl_arcade.draw(surface)
+        
+        # Dessin Bouton Campagne
+        pygame.draw.rect(surface, (30, 40, 50), self.btn_campaign, border_radius=10)
+        pygame.draw.rect(surface, (0, 255, 255), self.btn_campaign, 2, border_radius=10)
+        self.lbl_campaign.draw(surface)
