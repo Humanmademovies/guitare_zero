@@ -1,4 +1,5 @@
 import random
+import pygame
 from dataclasses import dataclass
 from .guitar_map import GUITAR_MAP
 from .settings import GameSettings
@@ -46,9 +47,12 @@ class GameEngine:
         self.song_time_beats = 0.0
         self.next_note_idx = 0
 	
-	# scoring quêtes
+        # scoring quêtes
         self.max_quest_score = 0
         self.quest_percent = 0.0
+
+        # Historique pour le Radar (x=timing, y=pitch, time=ticks)
+        self.hit_history = []
         
     def load_quest(self, campaign_id, quest_data):
         self.quest_mode = True
@@ -58,19 +62,13 @@ class GameEngine:
         self.next_note_idx = 0
         self.song_time_beats = -4.0
         
-        # 1. On lance la remise à zéro des stats
         self.start_game()
-        
-        # 2. On injecte les vies du JSON (0 = infini)
         self.stats.lives = quest_data["params"].get("max_lives", 0)
         
-        # 3. Sécurité : on récupère la séquence ou une liste vide si elle n'existe pas
-        sequence = quest_data["params"].get("sequence", [])
-        count = len(sequence)
-        
-        # 4. Calcul du score maximum (on évite le crash si count est 0)
+        count = len(quest_data["params"].get("sequence", []))
         self.max_quest_score = (count * 300) + (self.stats.lives * 500)
         
+        self.hit_history = [] # Reset du radar à chaque début de quête
         self.initialized = True
 
     def start_game(self):
@@ -177,15 +175,26 @@ class GameEngine:
         if self.quest_mode:
             tol_t = self.quest_data["params"]["tolerance_timing"]
             tol_p = self.quest_data["params"]["tolerance_pitch"]
-            # Normalisation de l'erreur entre 0 et 1
+            
+            # Normalisation de l'erreur entre 0 et 1 pour le score
             norm_err = (abs(timing_err) / tol_t + abs(pitch_err) / tol_p) / 2.0
             bonus = int(200 * (1.0 - norm_err))
-            final_points = 100 + max(0, bonus)
+            self.stats.score += (100 + max(0, bonus))
+
+            # Ajout au radar (normalisé entre -1.0 et 1.0)
+            self.hit_history.append({
+                "x": timing_err / tol_t,
+                "y": pitch_err / tol_p,
+                "time": pygame.time.get_ticks()
+            })
+            # On garde les 10 derniers points pour le nuage
+            if len(self.hit_history) > 30:
+                self.hit_history.pop(0)
         else:
             speed_factor = 1.0 - (self.reaction_time / self.settings.note_duration)
             final_points = int((100 + max(0, speed_factor * 200)) * self.stats.multiplier)
+            self.stats.score += final_points
         
-        self.stats.score += final_points
         self.state = STATE_SUCCESS
         self.state_timer = 0.0
 

@@ -51,14 +51,6 @@ class GameScreen(Screen):
         start_x = int(W * 0.2)
         step_x = int(W * 0.15)
         
-        self.knob_gate  = Knob(start_x + step_x*0, knob_y, knob_radius, "GATE", cfg.rms_threshold, 0.0, 1.0)
-        self.knob_drive = Knob(start_x + step_x*1, knob_y, knob_radius, "DRIVE", 0.0, 0.0, 1.0)
-        self.knob_vol   = Knob(start_x + step_x*2, knob_y, knob_radius, "VOL", 0.8, 0.0, 1.0)
-        
-        self.status_light = StatusLight((W - 50, self.H_GAME + 50), 20)
-        
-        # Feedback Visuel
-        self.vu_meter = VUMeter(W - 30, self.H_GAME + 20, 15, self.H_CTRL - 40)
         
         self.lbl_detected = TextLabel(self.font_info, (self.cx, self.H_GAME + 25), align="center")
         self.lbl_detected.set_text("Waiting...", (100, 100, 100))
@@ -96,21 +88,10 @@ class GameScreen(Screen):
                 self.app.change_screen("setup")
                 return
 
-        # 4. Potards
-        if self.knob_gate.handle_event(event):
-            self.controller.set_audio_gate(self.knob_gate.val)
-        if self.knob_drive.handle_event(event):
-            self.controller.set_audio_drive(self.knob_drive.val)
-        if self.knob_vol.handle_event(event):
-            self.controller.set_audio_volume(self.knob_vol.val)
 
     def update(self, dt: float):
         feats = self.state.get_features_snapshot()
         if feats:
-            self.status_light.set_active(feats.stable)
-            self.knob_gate.val = self.cfg.rms_threshold
-            self.vu_meter.set_value(feats.rms)
-            self.vu_meter.threshold = self.cfg.rms_threshold
             
             engine = self.controller.game_engine
             if feats.note_name:
@@ -132,19 +113,13 @@ class GameScreen(Screen):
         # 3. HUD
         self._draw_hud(surface)
 
-        # 4. AIDE (Correction : On l'appelle TOUJOURS, c'est dedans qu'on trie)
+        # 4. AIDE
         self._draw_tab_helper(surface)
         
-        # 5. CONTROLES
+        # 5. CONTROLES (Le fond de la barre du bas)
         pygame.draw.rect(surface, (20, 20, 30), self.rect_ctrl)
         pygame.draw.line(surface, (50, 50, 50), (0, self.H_GAME), (self.W, self.H_GAME), 2)
         
-        self.knob_gate.draw(surface)
-        self.knob_drive.draw(surface)
-        self.knob_vol.draw(surface)
-        self.status_light.draw(surface)
-        
-        self.vu_meter.draw(surface)
         self.lbl_detected.draw(surface)
         
         # 6. SETTINGS
@@ -157,8 +132,59 @@ class GameScreen(Screen):
         # 7. INFO AUDIO
         self._draw_device_info(surface)
 
-        # 8. OVERLAYS (FIN DE PARTIE + HIGHSCORES)
+        # --- 8. LE RADAR DE PRÉCISION ---
+        # On l'appelle ici pour qu'il soit dessiné par-dessus tout le reste
+        if self.controller.game_engine.quest_mode:
+            self._draw_precision_radar(surface)
+
+        # 9. OVERLAYS (FIN DE PARTIE)
         self._draw_game_over_overlay(surface)
+    
+    def _draw_precision_radar(self, surface):
+        engine = self.controller.game_engine
+        
+        # Placement : Centré (cx) et dans la barre du bas (cy)
+        cx = self.cx
+        cy = self.H_GAME + (self.H_CTRL // 2)
+        radar_size = int(self.H_CTRL * 0.7)
+        
+        # Fond du radar
+        bg_rect = pygame.Rect(0, 0, radar_size + 40, radar_size + 30)
+        bg_rect.center = (cx, cy)
+        pygame.draw.rect(surface, (15, 20, 25), bg_rect, border_radius=10)
+        pygame.draw.rect(surface, (0, 255, 255), bg_rect, 2, border_radius=10)
+        
+        # Croix du radar
+        color_axis = (200, 200, 200)
+        pygame.draw.line(surface, color_axis, (cx - radar_size//2, cy), (cx + radar_size//2, cy), 2)
+        pygame.draw.line(surface, color_axis, (cx, cy - radar_size//2), (cx, cy + radar_size//2), 2)
+        
+        # Dessin du nuage de points (Persistance de 6 secondes)
+        now = pygame.time.get_ticks()
+        for i, hit in enumerate(engine.hit_history):
+            age = now - hit["time"]
+            if age > 6000: continue
+            
+            # Fondu beaucoup plus lent
+            alpha = max(0, 255 - int((age / 6000.0) * 255))
+            px = cx + int(hit["x"] * (radar_size // 2))
+            py = cy + int(hit["y"] * (radar_size // 2))
+            
+            is_last = (i == len(engine.hit_history) - 1)
+            color = (0, 255, 255) if is_last else (255, 100, 100)
+            radius = 6 if is_last else 4
+            
+            # Point avec alpha
+            s = pygame.Surface((radius*2, radius*2), pygame.SRCALPHA)
+            pygame.draw.circle(s, (*color, alpha), (radius, radius), radius)
+            surface.blit(s, (px - radius, py - radius))
+
+        # Légendes
+        f = pygame.font.SysFont("monospace", 12, bold=True)
+        surface.blit(f.render("TÔT", True, color_axis), (cx - radar_size//2 - 35, cy - 6))
+        surface.blit(f.render("TARD", True, color_axis), (cx + radar_size//2 + 5, cy - 6))
+        surface.blit(f.render("HAUT", True, color_axis), (cx - 15, cy - radar_size//2 - 20))
+        surface.blit(f.render("BAS", True, color_axis), (cx - 12, cy + radar_size//2 + 5))
 
     def _draw_highway(self, surface):
         points = [

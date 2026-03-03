@@ -15,20 +15,192 @@
         },
         {
             "id": "q2",
-            "name": "Échauffement Rythmique",
+            "name": "Montée - Corde 6 (Mi Grave)",
+            "type": "rhythm",
+            "next_quest": "q3",
+            "params": {
+                "tempo": 60, "tolerance_timing": 0.25, "tolerance_pitch": 10, "max_lives": 0,
+                "sequence": [
+                    {"beat": 1.0, "string": 6, "fret": 0}, {"beat": 2.0, "string": 6, "fret": 1},
+                    {"beat": 3.0, "string": 6, "fret": 2}, {"beat": 4.0, "string": 6, "fret": 3},
+                    {"beat": 5.0, "string": 6, "fret": 4}
+                ]
+            }
+        },
+        {
+            "id": "q3",
+            "name": "Montée - Corde 5 (La)",
+            "type": "rhythm",
+            "next_quest": "q4",
+            "params": {
+                "tempo": 60, "tolerance_timing": 0.25, "tolerance_pitch": 10, "max_lives": 0,
+                "sequence": [
+                    {"beat": 1.0, "string": 5, "fret": 0}, {"beat": 2.0, "string": 5, "fret": 1},
+                    {"beat": 3.0, "string": 5, "fret": 2}, {"beat": 4.0, "string": 5, "fret": 3},
+                    {"beat": 5.0, "string": 5, "fret": 4}
+                ]
+            }
+        },
+        {
+            "id": "q4",
+            "name": "Montée - Corde 4 (Ré)",
+            "type": "rhythm",
+            "next_quest": "q5",
+            "params": {
+                "tempo": 60, "tolerance_timing": 0.25, "tolerance_pitch": 10, "max_lives": 0,
+                "sequence": [
+                    {"beat": 1.0, "string": 4, "fret": 0}, {"beat": 2.0, "string": 4, "fret": 1},
+                    {"beat": 3.0, "string": 4, "fret": 2}, {"beat": 4.0, "string": 4, "fret": 3},
+                    {"beat": 5.0, "string": 4, "fret": 4}
+                ]
+            }
+        },
+        {
+            "id": "q5",
+            "name": "Montée - Corde 3 (Sol)",
+            "type": "rhythm",
+            "next_quest": "q6",
+            "params": {
+                "tempo": 60, "tolerance_timing": 0.25, "tolerance_pitch": 10, "max_lives": 0,
+                "sequence": [
+                    {"beat": 1.0, "string": 3, "fret": 0}, {"beat": 2.0, "string": 3, "fret": 1},
+                    {"beat": 3.0, "string": 3, "fret": 2}, {"beat": 4.0, "string": 3, "fret": 3},
+                    {"beat": 5.0, "string": 3, "fret": 4}
+                ]
+            }
+        },
+        {
+            "id": "q6",
+            "name": "Montée - Corde 2 (Si)",
+            "type": "rhythm",
+            "next_quest": "q7",
+            "params": {
+                "tempo": 60, "tolerance_timing": 0.25, "tolerance_pitch": 10, "max_lives": 0,
+                "sequence": [
+                    {"beat": 1.0, "string": 2, "fret": 0}, {"beat": 2.0, "string": 2, "fret": 1},
+                    {"beat": 3.0, "string": 2, "fret": 2}, {"beat": 4.0, "string": 2, "fret": 3},
+                    {"beat": 5.0, "string": 2, "fret": 4}
+                ]
+            }
+        },
+        {
+            "id": "q7",
+            "name": "Montée - Corde 1 (Mi Aigu)",
+            "type": "rhythm",
+            "next_quest": "q8",
+            "params": {
+                "tempo": 60, "tolerance_timing": 0.25, "tolerance_pitch": 10, "max_lives": 0,
+                "sequence": [
+                    {"beat": 1.0, "string": 1, "fret": 0}, {"beat": 2.0, "string": 1, "fret": 1},
+                    {"beat": 3.0, "string": 1, "fret": 2}, {"beat": 4.0, "string": 1, "fret": 3},
+                    {"beat": 5.0, "string": 1, "fret": 4}
+                ]
+            }
+        },
+        {
+            "id": "q8",
+            "name": "Descente - Corde 1 (Mi Aigu)",
+            "type": "rhythm",
+            "next_quest": "q9",
+            "params": {
+                "tempo": 60, "tolerance_timing": 0.25, "tolerance_pitch": 10, "max_lives": 0,
+                "sequence": [
+                    {"beat": 1.0, "string": 1, "fret": 4}, {"beat": 2.0, "string": 1, "fret": 3},
+                    {"beat": 3.0, "string": 1, "fret": 2}, {"beat": 4.0, "string": 1, "fret": 1},
+                    {"beat": 5.0, "string": 1, "fret": 0}
+                ]
+            }
+        },
+        {
+            "id": "q9",
+            "name": "Descente - Corde 2 (Si)",
+            "type": "rhythm",
+            "next_quest": "q10",
+            "params": {
+                "tempo": 60, "tolerance_timing": 0.25, "tolerance_pitch": 10, "max_lives": 0,
+                "sequence": [
+                    {"beat": 1.0, "string": 2, "fret": 4}, {"beat": 2.0, "string": 2, "fret": 3},
+                    {"beat": 3.0, "string": 2, "fret": 2}, {"beat": 4.0, "string": 2, "fret": 1},
+                    {"beat": 5.0, "string": 2, "fret": 0}
+                ]
+            }
+        },
+        {
+            "id": "q10",
+            "name": "Descente - Corde 3 (Sol)",
+            "type": "rhythm",
+            "next_quest": "q11",
+            "params": {
+                "tempo": 60, "tolerance_timing": 0.25, "tolerance_pitch": 10, "max_lives": 0,
+                "sequence": [
+                    {"beat": 1.0, "string": 3, "fret": 4}, {"beat": 2.0, "string": 3, "fret": 3},
+                    {"beat": 3.0, "string": 3, "fret": 2}, {"beat": 4.0, "string": 3, "fret": 1},
+                    {"beat": 5.0, "string": 3, "fret": 0}
+                ]
+            }
+        },
+        {
+            "id": "q11",
+            "name": "Descente - Corde 4 (Ré)",
+            "type": "rhythm",
+            "next_quest": "q12",
+            "params": {
+                "tempo": 60, "tolerance_timing": 0.25, "tolerance_pitch": 10, "max_lives": 0,
+                "sequence": [
+                    {"beat": 1.0, "string": 4, "fret": 4}, {"beat": 2.0, "string": 4, "fret": 3},
+                    {"beat": 3.0, "string": 4, "fret": 2}, {"beat": 4.0, "string": 4, "fret": 1},
+                    {"beat": 5.0, "string": 4, "fret": 0}
+                ]
+            }
+        },
+        {
+            "id": "q12",
+            "name": "Descente - Corde 5 (La)",
+            "type": "rhythm",
+            "next_quest": "q13",
+            "params": {
+                "tempo": 60, "tolerance_timing": 0.25, "tolerance_pitch": 10, "max_lives": 0,
+                "sequence": [
+                    {"beat": 1.0, "string": 5, "fret": 4}, {"beat": 2.0, "string": 5, "fret": 3},
+                    {"beat": 3.0, "string": 5, "fret": 2}, {"beat": 4.0, "string": 5, "fret": 1},
+                    {"beat": 5.0, "string": 5, "fret": 0}
+                ]
+            }
+        },
+        {
+            "id": "q13",
+            "name": "Descente - Corde 6 (Mi Grave)",
+            "type": "rhythm",
+            "next_quest": "q14",
+            "params": {
+                "tempo": 60, "tolerance_timing": 0.25, "tolerance_pitch": 10, "max_lives": 0,
+                "sequence": [
+                    {"beat": 1.0, "string": 6, "fret": 4}, {"beat": 2.0, "string": 6, "fret": 3},
+                    {"beat": 3.0, "string": 6, "fret": 2}, {"beat": 4.0, "string": 6, "fret": 1},
+                    {"beat": 5.0, "string": 6, "fret": 0}
+                ]
+            }
+        },
+        {
+            "id": "q14",
+            "name": "Épreuve Finale : L'Aller-Retour",
             "type": "rhythm",
             "next_quest": null,
             "params": {
-                "tempo": 60,
-                "tolerance_timing": 0.25,
-                "tolerance_pitch": 10,
-                "max_lives": 0,
+                "tempo": 60, "tolerance_timing": 0.25, "tolerance_pitch": 10, "max_lives": 0,
                 "sequence": [
-                    {"beat": 1.0, "string": 6, "fret": 0},
-                    {"beat": 2.0, "string": 6, "fret": 1},
-                    {"beat": 3.0, "string": 6, "fret": 2},
-                    {"beat": 4.0, "string": 6, "fret": 3},
-                    {"beat": 5.0, "string": 6, "fret": 4}
+                    {"beat": 1.0, "string": 6, "fret": 0}, {"beat": 2.0, "string": 6, "fret": 1}, {"beat": 3.0, "string": 6, "fret": 2}, {"beat": 4.0, "string": 6, "fret": 3}, {"beat": 5.0, "string": 6, "fret": 4},
+                    {"beat": 6.0, "string": 5, "fret": 0}, {"beat": 7.0, "string": 5, "fret": 1}, {"beat": 8.0, "string": 5, "fret": 2}, {"beat": 9.0, "string": 5, "fret": 3}, {"beat": 10.0, "string": 5, "fret": 4},
+                    {"beat": 11.0, "string": 4, "fret": 0}, {"beat": 12.0, "string": 4, "fret": 1}, {"beat": 13.0, "string": 4, "fret": 2}, {"beat": 14.0, "string": 4, "fret": 3}, {"beat": 15.0, "string": 4, "fret": 4},
+                    {"beat": 16.0, "string": 3, "fret": 0}, {"beat": 17.0, "string": 3, "fret": 1}, {"beat": 18.0, "string": 3, "fret": 2}, {"beat": 19.0, "string": 3, "fret": 3}, {"beat": 20.0, "string": 3, "fret": 4},
+                    {"beat": 21.0, "string": 2, "fret": 0}, {"beat": 22.0, "string": 2, "fret": 1}, {"beat": 23.0, "string": 2, "fret": 2}, {"beat": 24.0, "string": 2, "fret": 3}, {"beat": 25.0, "string": 2, "fret": 4},
+                    {"beat": 26.0, "string": 1, "fret": 0}, {"beat": 27.0, "string": 1, "fret": 1}, {"beat": 28.0, "string": 1, "fret": 2}, {"beat": 29.0, "string": 1, "fret": 3}, {"beat": 30.0, "string": 1, "fret": 4},
+                    {"beat": 31.0, "string": 1, "fret": 4}, {"beat": 32.0, "string": 1, "fret": 3}, {"beat": 33.0, "string": 1, "fret": 2}, {"beat": 34.0, "string": 1, "fret": 1}, {"beat": 35.0, "string": 1, "fret": 0},
+                    {"beat": 36.0, "string": 2, "fret": 4}, {"beat": 37.0, "string": 2, "fret": 3}, {"beat": 38.0, "string": 2, "fret": 2}, {"beat": 39.0, "string": 2, "fret": 1}, {"beat": 40.0, "string": 2, "fret": 0},
+                    {"beat": 41.0, "string": 3, "fret": 4}, {"beat": 42.0, "string": 3, "fret": 3}, {"beat": 43.0, "string": 3, "fret": 2}, {"beat": 44.0, "string": 3, "fret": 1}, {"beat": 45.0, "string": 3, "fret": 0},
+                    {"beat": 46.0, "string": 4, "fret": 4}, {"beat": 47.0, "string": 4, "fret": 3}, {"beat": 48.0, "string": 4, "fret": 2}, {"beat": 49.0, "string": 4, "fret": 1}, {"beat": 50.0, "string": 4, "fret": 0},
+                    {"beat": 51.0, "string": 5, "fret": 4}, {"beat": 52.0, "string": 5, "fret": 3}, {"beat": 53.0, "string": 5, "fret": 2}, {"beat": 54.0, "string": 5, "fret": 1}, {"beat": 55.0, "string": 5, "fret": 0},
+                    {"beat": 56.0, "string": 6, "fret": 4}, {"beat": 57.0, "string": 6, "fret": 3}, {"beat": 58.0, "string": 6, "fret": 2}, {"beat": 59.0, "string": 6, "fret": 1}, {"beat": 60.0, "string": 6, "fret": 0}
                 ]
             }
         }

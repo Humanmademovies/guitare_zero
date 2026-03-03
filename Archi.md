@@ -310,10 +310,120 @@ Pourquoi c’est crucial :
 
 ------
 
-## Pourquoi cette structure valide l’évolutivité
+# prochaines features:
 
-- Les futurs **défis** se branchent en ajoutant `game/` (ex. `exercise_base.py`, `hold_note.py`) qui consommera `Features` sans toucher à `audio/` et très peu à `ui/`.
-- Les futurs **accords** (corde par corde) réutilisent pitch monophonique et ajoutent un `ChordExercise` au lieu de réécrire l’analyse.
-- Les futures **mélodies** ajoutent un module `analysis/onset.py` + un exercice de séquence, sans casser le MVP.
+# 🎸 Plan d'Action : Le Mode Studio & Le Moteur de Rendu (Preview)
 
-Si vous voulez continuer immédiatement, l’étape suivante logique est : définir les valeurs par défaut de `AppConfig` pour guitare (fmin/fmax, block size, seuils) et la boucle de traitement (`AppController.update`) pour garantir une UI fluide.
+## 1. La Raison d'Être des Samples (Le "Pourquoi")
+
+L'objectif est d'offrir un bouton **"Écouter la Quête"** avant de la jouer, pour que l'utilisateur puisse assimiler le rythme et la mélodie à l'oreille.
+
+- **Le Réalisme Absolu :** En s'enregistrant soi-même, la "Preview" du jeu sonnera exactement avec le même grain, les mêmes micros et la même guitare que le joueur.
+- **L'Évolutivité (Scalability pour les Accords) :** Un accord n'est qu'une superposition de notes. En possédant un sample propre pour chaque note individuelle (ex: Corde 6 Case 0, Corde 5 Case 2...), le moteur pourra générer n'importe quel accord complexe en les jouant avec un micro-décalage (strumming), sans avoir besoin d'enregistrer chaque accord manuellement.
+- **La Personnalisation :** Si le joueur change de guitare (passe d'une acoustique à une électrique métal), il lui suffit de refaire une session "Studio" pour que le jeu s'adapte à son nouvel instrument.
+
+------
+
+## 2. Le Concept du "Mode Studio" (Le "Quoi")
+
+C'est la gamification du fastidieux processus d'échantillonnage (sampling). Au lieu d'utiliser un logiciel de MAO (comme Audacity) pour enregistrer et découper 40 notes, on intègre un mini-jeu de précision dans *Guitar Zero*.
+
+- L'interface demande une note spécifique (ex: "Joue la Corde 6 à vide").
+- Le moteur attend que le joueur joue la note.
+- Si la note est **juste** (cents proches de 0), **pure** (pas de bruit parasite) et **stable**, le jeu "capture" automatiquement les 3 secondes de résonance.
+- Le jeu sauvegarde le fichier et passe automatiquement à la case suivante (Case 1, Case 2...).
+
+------
+
+## 3. Plan d'Implémentation Détaillé (Le "Comment")
+
+Ce chantier se divise en deux grandes phases : l'Enregistrement (Le Studio) et la Lecture (Le Sampler).
+
+### PHASE A : L'Enregistrement (Créer sa banque de sons)
+
+1. **Création du `StudioScreen` (UI) :**
+   - Cloner l'écran de l'accordeur (`TunerScreen`).
+   - Ajouter une liste interne d'objectifs : de `(6, 0)` [Corde 6, Case 0] jusqu'à `(1, 4)` [Corde 1, Case 4].
+   - Afficher au centre de l'écran la note à jouer avec une jauge de stabilité.
+2. **Logique de Capture (Audio) :**
+   - Dans la boucle d'update, vérifier les `Features` du micro : `f0`, `cents` et `is_pure`.
+   - Si les conditions sont parfaites pendant `X` frames, déclencher l'état **"ENREGISTREMENT"**.
+   - Empiler les tableaux `samples` générés par le processeur audio pendant 2 ou 3 secondes pour capter le *sustain* de la note.
+3. **Sauvegarde sur le Disque (Export WAV) :**
+   - Utiliser le module standard Python `wave` ou `scipy.io.wavfile` pour convertir le grand tableau de samples accumulés.
+   - Sauvegarder dans un dossier : `data/samples/`.
+   - **Convention de nommage stricte :** `string_fret.wav` (ex: `6_0.wav`, `5_3.wav`). C'est crucial pour que le moteur retrouve les sons sans réfléchir.
+
+### PHASE B : Le Moteur de Rendu (Le "Sampler")
+
+1. **Création de la classe `PreviewPlayer` :**
+   - Une classe qui se charge au lancement du jeu et qui lit le dossier `data/samples/`.
+   - Elle charge tous les fichiers `.wav` trouvés en mémoire (dans des objets `pygame.mixer.Sound` ou des tableaux Numpy) indexés par `(corde, case)`.
+2. **Le Générateur de Piste :**
+   - Une fonction qui prend en entrée la `sequence` d'une quête JSON (la liste des `beats`, `strings`, `frets`).
+   - Elle convertit les `beats` en secondes réelles en utilisant le `tempo` de la quête.
+   - Elle programme la lecture des sons correspondants aux timestamps exacts.
+3. **Intégration UI (`QuestListScreen` / `GameSetupScreen`) :**
+   - Ajouter un bouton "Écouter" (ou Play) à côté du nom de la quête.
+   - Au clic, la piste générée est envoyée à la sortie audio (et pourquoi pas, passe à travers les effets de Distorsion/Reverb de ton `Pedalboard` pour un rendu épique).
+
+------
+
+
+
+# 🎸 Plan d'Action : Custom Tracks & Transcription Audio (Suno)
+
+## 1. La Raison d'Être des Custom Tracks (Le "Pourquoi")
+
+L'objectif est d'offrir une durée de vie infinie au jeu en permettant au joueur d'apprendre et de jouer par-dessus n'importe quelle chanson (générée par Suno ou issue de sa bibliothèque MP3).
+
+- **L'Apprentissage Réel :** Sortir des exercices répétitifs pour apprendre à jouer de vrais morceaux, avec le vrai son d'un groupe en fond sonore (batterie, basse, chant).
+- **Automatisation du Contenu :** Créer un niveau de jeu de rythme à la main (en tapant le JSON note par note) est un travail titanesque. L'automatisation permet de générer des centaines de quêtes instantanément.
+- **Séparation des Préoccupations :** Conserver un moteur de jeu (`engine.py`) extrêmement léger et rapide, en déplaçant toute la charge de calcul lourde (IA, analyse spectrale) vers un outil externe exécuté avant de jouer.
+
+------
+
+## 2. Le Concept du "Pré-Processeur" (Le "Quoi")
+
+Transformer une musique brute en niveau de jeu est un défi d'ambiguïté (où placer ses doigts pour une même note ?). La solution est un pipeline **hors-ligne** (un script indépendant du jeu) divisé en 3 étapes :
+
+1. Séparer les instruments (Stems).
+2. Extraire la partition de la guitare (Audio vers MIDI).
+3. Placer intelligemment les doigts sur le manche (MIDI vers JSON).
+
+------
+
+## 4. Plan d'Implémentation Détaillé (Le "Comment")
+
+Ce chantier se divise en trois grandes phases. Les phases A et B constituent un utilitaire externe, la phase C est une mise à jour mineure du moteur de jeu.
+
+### PHASE A : L'Extraction et l'Analyse (Les IAs)
+
+1. **La Séparation des Pistes (Stems) :**
+   - Utiliser une IA de *Source Separation* (comme Demucs ou Spleeter de Deezer) sur le morceau généré par Suno.
+   - Objectif : Obtenir deux fichiers. Un `backing_track.wav` (Tout sauf la guitare) et un `guitar_stem.wav` (Guitare isolée).
+2. **La Transcription Audio vers MIDI (AMT) :**
+   - Faire passer le `guitar_stem.wav` dans un modèle open-source de transcription (comme **Basic Pitch** par Spotify).
+   - L'IA écoute la piste de guitare et génère un fichier `guitar_track.mid`. Ce fichier contient le rythme parfait et la hauteur des notes, mais pas le doigté (corde/case).
+
+### PHASE B : Le Convertisseur Python (Le "Mapper")
+
+C'est le script "Magique" que tu devras coder pour relier l'IA à ton jeu.
+
+1. **Lecture du Fichier MIDI :**
+   - Utiliser une bibliothèque Python (comme `mido` ou `pretty_midi`) pour lire les notes et leurs timestamps (en secondes).
+   - Calculer le `beat` de chaque note en fonction du BPM de la chanson.
+2. **L'Heuristique de Placement (Le chemin le plus court) :**
+   - Pour chaque note lue (ex: E4), le script interroge le `GUITAR_MAP` de ton jeu pour trouver toutes les positions possibles (ex: Corde 1 Case 0, Corde 2 Case 5, etc.).
+   - **L'Algorithme :** Le script retient la position *la plus proche* de la note précédente. Si la note précédente était jouée Corde 3 Case 7, l'algorithme privilégiera une nouvelle note Corde 2 Case 5 plutôt qu'une corde à vide pour éviter que le joueur ne fasse des bonds impossibles sur le manche.
+3. **L'Export au format Quête :**
+   - Le script génère la structure `json` attendue par le jeu, en y insérant la liste des notes calculées.
+   - Il crée un dossier pour la chanson contenant : `level.json` et `backing_track.wav`.
+
+### PHASE C : L'Intégration In-Game (Dans le Moteur)
+
+1. **Mise à jour de `engine.py` (`load_quest`) :**
+   - Ajouter une vérification : si la quête contient une clé `"audio_track": "backing_track.wav"`, le moteur charge ce fichier audio.
+   - Lancer la lecture (`pygame.mixer.music.play()`) au moment exact où les notes commencent à descendre.
+2. **La Synchronisation :**
+   - L'avancement des notes ne sera plus purement calculé sur le `dt` (delta time) théorique, mais idéalement asservi à la position de lecture du fichier audio (`pygame.mixer.music.get_pos()`) pour s'assurer qu'aucun décalage ne se crée si le jeu subit un ralentissement (lag).

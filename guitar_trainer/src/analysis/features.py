@@ -65,11 +65,14 @@ class FeatureExtractor:
         is_pure = flatness < self.cfg.flatness_threshold
         is_voiced = (f0 > 0) and (conf > self.cfg.confidence_threshold) and (rms > self.cfg.rms_threshold) and is_pure
 
+        # CORRECTION : Si le son n'est pas "voiced" (volume trop bas, etc.), on efface la note
+        final_note_name = pitch_result.note_name if is_voiced else None
+
         # 5. Création de l'objet Features temporaire
         feats_temp = Features(
             timestamp=audio_block.timestamp,
             f0_hz=f0,
-            note_name=pitch_result.note_name,
+            note_name=final_note_name,
             cents=pitch_result.cents,
             rms=rms,
             flatness=flatness,
