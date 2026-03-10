@@ -39,7 +39,14 @@ class AppState:
         with self._lock:
             if self._features is None:
                 return None
-            return replace(self._features)
+            
+            snap = replace(self._features)
+            # Deep copy des tableaux numpy pour éviter les accès concurrents
+            if snap.spectrum is not None:
+                snap.spectrum = snap.spectrum.copy()
+            if snap.samples is not None:
+                snap.samples = snap.samples.copy()
+            return snap
 
     def get_spectrogram_history(self) -> list[np.ndarray]:
         """Retourne une copie sécurisée de l'historique pour l'affichage."""

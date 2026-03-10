@@ -10,7 +10,8 @@
             "params": {
                 "max_lives": 0,
                 "tolerance_cents": 3,
-                "required_stability_frames": 30
+                "required_stability_frames": 30,
+                "requirements": { "min_percent": 0 }
             }
         },
         {
@@ -20,6 +21,7 @@
             "next_quest": "q3",
             "params": {
                 "tempo": 60, "tolerance_timing": 0.25, "tolerance_pitch": 10, "max_lives": 0,
+                "requirements": { "min_percent": 50 },
                 "sequence": [
                     {"beat": 1.0, "string": 6, "fret": 0}, {"beat": 2.0, "string": 6, "fret": 1},
                     {"beat": 3.0, "string": 6, "fret": 2}, {"beat": 4.0, "string": 6, "fret": 3},
@@ -34,6 +36,7 @@
             "next_quest": "q4",
             "params": {
                 "tempo": 60, "tolerance_timing": 0.25, "tolerance_pitch": 10, "max_lives": 0,
+                "requirements": { "min_percent": 50 },
                 "sequence": [
                     {"beat": 1.0, "string": 5, "fret": 0}, {"beat": 2.0, "string": 5, "fret": 1},
                     {"beat": 3.0, "string": 5, "fret": 2}, {"beat": 4.0, "string": 5, "fret": 3},
@@ -48,6 +51,7 @@
             "next_quest": "q5",
             "params": {
                 "tempo": 60, "tolerance_timing": 0.25, "tolerance_pitch": 10, "max_lives": 0,
+                "requirements": { "min_percent": 50 },
                 "sequence": [
                     {"beat": 1.0, "string": 4, "fret": 0}, {"beat": 2.0, "string": 4, "fret": 1},
                     {"beat": 3.0, "string": 4, "fret": 2}, {"beat": 4.0, "string": 4, "fret": 3},
@@ -62,6 +66,7 @@
             "next_quest": "q6",
             "params": {
                 "tempo": 60, "tolerance_timing": 0.25, "tolerance_pitch": 10, "max_lives": 0,
+                "requirements": { "min_percent": 50 },
                 "sequence": [
                     {"beat": 1.0, "string": 3, "fret": 0}, {"beat": 2.0, "string": 3, "fret": 1},
                     {"beat": 3.0, "string": 3, "fret": 2}, {"beat": 4.0, "string": 3, "fret": 3},
@@ -76,6 +81,7 @@
             "next_quest": "q7",
             "params": {
                 "tempo": 60, "tolerance_timing": 0.25, "tolerance_pitch": 10, "max_lives": 0,
+                "requirements": { "min_percent": 50 },
                 "sequence": [
                     {"beat": 1.0, "string": 2, "fret": 0}, {"beat": 2.0, "string": 2, "fret": 1},
                     {"beat": 3.0, "string": 2, "fret": 2}, {"beat": 4.0, "string": 2, "fret": 3},
@@ -90,6 +96,7 @@
             "next_quest": "q8",
             "params": {
                 "tempo": 60, "tolerance_timing": 0.25, "tolerance_pitch": 10, "max_lives": 0,
+                "requirements": { "min_percent": 50 },
                 "sequence": [
                     {"beat": 1.0, "string": 1, "fret": 0}, {"beat": 2.0, "string": 1, "fret": 1},
                     {"beat": 3.0, "string": 1, "fret": 2}, {"beat": 4.0, "string": 1, "fret": 3},
@@ -104,6 +111,7 @@
             "next_quest": "q9",
             "params": {
                 "tempo": 60, "tolerance_timing": 0.25, "tolerance_pitch": 10, "max_lives": 0,
+                "requirements": { "min_percent": 50 },
                 "sequence": [
                     {"beat": 1.0, "string": 1, "fret": 4}, {"beat": 2.0, "string": 1, "fret": 3},
                     {"beat": 3.0, "string": 1, "fret": 2}, {"beat": 4.0, "string": 1, "fret": 1},
@@ -118,6 +126,7 @@
             "next_quest": "q10",
             "params": {
                 "tempo": 60, "tolerance_timing": 0.25, "tolerance_pitch": 10, "max_lives": 0,
+                "requirements": { "min_percent": 50 },
                 "sequence": [
                     {"beat": 1.0, "string": 2, "fret": 4}, {"beat": 2.0, "string": 2, "fret": 3},
                     {"beat": 3.0, "string": 2, "fret": 2}, {"beat": 4.0, "string": 2, "fret": 1},
@@ -132,6 +141,7 @@
             "next_quest": "q11",
             "params": {
                 "tempo": 60, "tolerance_timing": 0.25, "tolerance_pitch": 10, "max_lives": 0,
+                "requirements": { "min_percent": 50 },
                 "sequence": [
                     {"beat": 1.0, "string": 3, "fret": 4}, {"beat": 2.0, "string": 3, "fret": 3},
                     {"beat": 3.0, "string": 3, "fret": 2}, {"beat": 4.0, "string": 3, "fret": 1},
@@ -146,6 +156,7 @@
             "next_quest": "q12",
             "params": {
                 "tempo": 60, "tolerance_timing": 0.25, "tolerance_pitch": 10, "max_lives": 0,
+                "requirements": { "min_percent": 50 },
                 "sequence": [
                     {"beat": 1.0, "string": 4, "fret": 4}, {"beat": 2.0, "string": 4, "fret": 3},
                     {"beat": 3.0, "string": 4, "fret": 2}, {"beat": 4.0, "string": 4, "fret": 1},
@@ -160,6 +171,7 @@
             "next_quest": "q13",
             "params": {
                 "tempo": 60, "tolerance_timing": 0.25, "tolerance_pitch": 10, "max_lives": 0,
+                "requirements": { "min_percent": 50 },
                 "sequence": [
                     {"beat": 1.0, "string": 5, "fret": 4}, {"beat": 2.0, "string": 5, "fret": 3},
                     {"beat": 3.0, "string": 5, "fret": 2}, {"beat": 4.0, "string": 5, "fret": 1},
@@ -174,6 +186,7 @@
             "next_quest": "q14",
             "params": {
                 "tempo": 60, "tolerance_timing": 0.25, "tolerance_pitch": 10, "max_lives": 0,
+                "requirements": { "min_percent": 50 },
                 "sequence": [
                     {"beat": 1.0, "string": 6, "fret": 4}, {"beat": 2.0, "string": 6, "fret": 3},
                     {"beat": 3.0, "string": 6, "fret": 2}, {"beat": 4.0, "string": 6, "fret": 1},
@@ -188,6 +201,7 @@
             "next_quest": null,
             "params": {
                 "tempo": 60, "tolerance_timing": 0.25, "tolerance_pitch": 10, "max_lives": 0,
+                "requirements": { "min_percent": 50 },
                 "sequence": [
                     {"beat": 1.0, "string": 6, "fret": 0}, {"beat": 2.0, "string": 6, "fret": 1}, {"beat": 3.0, "string": 6, "fret": 2}, {"beat": 4.0, "string": 6, "fret": 3}, {"beat": 5.0, "string": 6, "fret": 4},
                     {"beat": 6.0, "string": 5, "fret": 0}, {"beat": 7.0, "string": 5, "fret": 1}, {"beat": 8.0, "string": 5, "fret": 2}, {"beat": 9.0, "string": 5, "fret": 3}, {"beat": 10.0, "string": 5, "fret": 4},

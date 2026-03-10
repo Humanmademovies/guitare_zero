@@ -1,5 +1,6 @@
 import pygame
 import math
+import time
 from .base import Screen
 from ..widgets.knob import Knob
 from ..widgets.text import TextLabel
@@ -101,6 +102,10 @@ class GameScreen(Screen):
             else:
                 self.lbl_detected.set_text("...", (80, 80, 80))
 
+            # Redirection automatique en mode quête pour éviter l'écran de score arcade
+            if engine.quest_mode and engine.state == "VICTORY":
+                self.app.change_screen("quest_result")
+
     def draw(self, surface):
         surface.fill(COLOR_BG)
         
@@ -160,13 +165,13 @@ class GameScreen(Screen):
         pygame.draw.line(surface, color_axis, (cx, cy - radar_size//2), (cx, cy + radar_size//2), 2)
         
         # Dessin du nuage de points (Persistance de 6 secondes)
-        now = pygame.time.get_ticks()
+        now = time.time() * 1000
         for i, hit in enumerate(engine.hit_history):
             age = now - hit["time"]
-            if age > 6000: continue
+            if age > 6000 or age < 0: continue
             
-            # Fondu beaucoup plus lent
-            alpha = max(0, 255 - int((age / 6000.0) * 255))
+            # Fondu et calcul de l'alpha sécurisé (0-255)
+            alpha = int(max(0, min(255, 255 - (age / 6000.0) * 255)))
             px = cx + int(hit["x"] * (radar_size // 2))
             py = cy + int(hit["y"] * (radar_size // 2))
             
@@ -355,7 +360,8 @@ class GameScreen(Screen):
     def _draw_game_over_overlay(self, surface):
         engine = self.controller.game_engine
         
-        if engine.state not in ["GAME_OVER", "VICTORY"]:
+        # Ne pas afficher l'overlay de score arcade si on est en mode quête
+        if engine.state not in ["GAME_OVER", "VICTORY"] or engine.quest_mode:
             return
             
         # Fond sombre

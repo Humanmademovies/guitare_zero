@@ -1,9 +1,9 @@
 import random
-import pygame
+import time
 from dataclasses import dataclass
 from .guitar_map import GUITAR_MAP
 from .settings import GameSettings
-from ..core.highscore import HighScoreManager  # Import du gestionnaire
+from ..core.highscore import HighScoreManager
 
 # --- ÉTATS DU JEU ---
 STATE_IDLE = "IDLE"           
@@ -89,80 +89,74 @@ class GameEngine:
         self.state_timer += dt
         
         if self.quest_mode:
-            # 1. Progression du temps musical
-            bpm = self.quest_data["params"]["tempo"]
-            self.song_time_beats += dt * (bpm / 60.0)
-            tol_t = self.quest_data["params"]["tolerance_timing"]
-            tol_p = self.quest_data["params"]["tolerance_pitch"]
-
-            # 2. Injection des notes dans le pipeline (Anticipation de 4 beats)
-            seq = self.quest_data["params"]["sequence"]
-            while self.next_note_idx < len(seq):
-                n = seq[self.next_note_idx]
-                if self.song_time_beats + 4.0 >= n["beat"]:
-                    # Identifier le nom de la note
-                    note_name = "???"
-                    for name, pos_list in GUITAR_MAP.items():
-                        if (n["string"], n["fret"]) in pos_list:
-                            note_name = name
-                            break
-                    
-                    self.active_notes.append({
-                        "string": n["string"], "fret": n["fret"],
-                        "note": note_name, "beat": n["beat"],
-                        "status": "pending" # pending, hit, missed
-                    })
-                    self.next_note_idx += 1
-                else:
-                    break
-
-            # 3. Vérification des "Miss" (notes qui ont dépassé la ligne)
-            for n in self.active_notes:
-                if n["status"] == "pending" and self.song_time_beats > n["beat"] + tol_t:
-                    n["status"] = "missed"
-                    self._handle_miss()
-
-            # 4. Vérification de l'entrée utilisateur sur la note la plus proche
-            target = next((n for n in self.active_notes if n["status"] == "pending"), None)
-            if target:
-                # Mise à jour des variables pour l'affichage du HUD/Aide
-                self.target_note = target["note"]
-                self.target_position = (target["string"], target["fret"])
-                
-                if features.note_name == target["note"] and features.stable:
-                    if abs(self.song_time_beats - target["beat"]) <= tol_t:
-                            target["status"] = "hit"
-                            # On passe les erreurs pour le calcul du score
-                            t_err = self.song_time_beats - target["beat"]
-                            p_err = features.cents
-                            self._handle_success(timing_err=t_err, pitch_err=p_err)
-
-            # 5. Nettoyage et Victoire
-            # On garde les notes 1 beat après l'impact pour l'effet visuel
-            self.active_notes = [n for n in self.active_notes if self.song_time_beats < n["beat"] + 1.0]
-            
-            if self.next_note_idx >= len(seq) and not self.active_notes:
-                self._handle_victory()
-                
+            self._update_quest_mode(features, dt)
         else:
-            # --- LOGIQUE ARCADE CLASSIQUE (Inchangée) ---
-            if self.state == STATE_PICK:
-                if self.stats.notes_played >= self.settings.total_notes:
-                    self._handle_victory()
-                    return
-                self._pick_smart_note()
-                self.state = STATE_LISTEN
-                self.state_timer = 0.0
-            elif self.state == STATE_LISTEN:
-                if features.note_name == self.target_note and features.stable:
-                    self.reaction_time = self.state_timer
-                    self._handle_success()
-                elif self.state_timer > self.settings.note_duration:
-                    self._handle_miss()
-            elif self.state in [STATE_SUCCESS, STATE_MISS]:
-                if self.state_timer > (1.0 if self.state == STATE_SUCCESS else 0.5):
-                    if self.stats.lives > 0: self.state = STATE_PICK
-                    else: self._handle_game_over()
+            self._update_arcade_mode(features, dt)
+
+    def _update_quest_mode(self, features, dt: float):
+        bpm = self.quest_data["params"]["tempo"]
+        self.song_time_beats += dt * (bpm / 60.0)
+        tol_t = self.quest_data["params"]["tolerance_timing"]
+        tol_p = self.quest_data["params"]["tolerance_pitch"]
+        seq = self.quest_data["params"]["sequence"]
+
+        while self.next_note_idx < len(seq):
+            n = seq[self.next_note_idx]
+            if self.song_time_beats + 4.0 >= n["beat"]:
+                note_name = "???"
+                for name, pos_list in GUITAR_MAP.items():
+                    if (n["string"], n["fret"]) in pos_list:
+                        note_name = name
+                        break
+                
+                self.active_notes.append({
+                    "string": n["string"], "fret": n["fret"],
+                    "note": note_name, "beat": n["beat"],
+                    "status": "pending"
+                })
+                self.next_note_idx += 1
+            else:
+                break
+
+        for n in self.active_notes:
+            if n["status"] == "pending" and self.song_time_beats > n["beat"] + tol_t:
+                n["status"] = "missed"
+                self._handle_miss()
+
+        target = next((n for n in self.active_notes if n["status"] == "pending"), None)
+        if target:
+            self.target_note = target["note"]
+            self.target_position = (target["string"], target["fret"])
+            
+            if features.note_name == target["note"] and features.stable:
+                timing_err = self.song_time_beats - target["beat"]
+                if abs(timing_err) <= tol_t:
+                    target["status"] = "hit"
+                    self._handle_success(timing_err=timing_err, pitch_err=features.cents)
+
+        self.active_notes = [n for n in self.active_notes if self.song_time_beats < n["beat"] + 1.0]
+        
+        if self.next_note_idx >= len(seq) and not self.active_notes:
+            self._handle_victory()
+
+    def _update_arcade_mode(self, features, dt: float):
+        if self.state == STATE_PICK:
+            if self.stats.notes_played >= self.settings.total_notes:
+                self._handle_victory()
+                return
+            self._pick_smart_note()
+            self.state = STATE_LISTEN
+            self.state_timer = 0.0
+        elif self.state == STATE_LISTEN:
+            if features.note_name == self.target_note and features.stable:
+                self.reaction_time = self.state_timer
+                self._handle_success()
+            elif self.state_timer > self.settings.note_duration:
+                self._handle_miss()
+        elif self.state in [STATE_SUCCESS, STATE_MISS]:
+            if self.state_timer > (1.0 if self.state == STATE_SUCCESS else 0.5):
+                if self.stats.lives > 0: self.state = STATE_PICK
+                else: self._handle_game_over()
                     
     def stop_game(self):
         self.state = STATE_IDLE
@@ -182,10 +176,11 @@ class GameEngine:
             self.stats.score += (100 + max(0, bonus))
 
             # Ajout au radar (normalisé entre -1.0 et 1.0)
+
             self.hit_history.append({
                 "x": timing_err / tol_t,
                 "y": pitch_err / tol_p,
-                "time": pygame.time.get_ticks()
+                "time": time.time() * 1000
             })
             # On garde les 10 derniers points pour le nuage
             if len(self.hit_history) > 30:
@@ -233,15 +228,16 @@ class GameEngine:
             camp_id = self.current_campaign_id
             quest_id = self.quest_data["id"]
             
-            # Sauvegarde du score persistant
+            # Sauvegarde du score (toujours)
             manager.save_quest_score(camp_id, quest_id, self.quest_percent)
             
-            # Déblocage de la suivante
-            if self.quest_data.get("next_quest"):
-                manager.unlock_quest(camp_id, self.quest_data["next_quest"])
+            # Vérification des conditions de victoire pour débloquer la suite
+            requirements = self.quest_data.get("params", {}).get("requirements", {})
+            min_percent = requirements.get("min_percent", 0)
             
-            if hasattr(self.controller, 'app') and self.controller.app:
-                self.controller.app.change_screen("quest_result")
+            if self.quest_percent >= min_percent:
+                if self.quest_data.get("next_quest"):
+                    manager.unlock_quest(camp_id, self.quest_data["next_quest"])
         else:
             self.hs_manager.add_score(self.stats.score, self.stats.multiplier)
             

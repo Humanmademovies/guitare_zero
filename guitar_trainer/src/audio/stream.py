@@ -34,6 +34,8 @@ class AudioStream:
         # On utilise self.cfg ici !
         print("[DEBUG] Attempting to load AudioProcessor...")
         self.processor = AudioProcessor(self.cfg.sample_rate, self.cfg.block_size)
+        self.processor.set_gate_threshold(self.cfg.gate_threshold)
+        self.processor.set_tone(self.cfg.tone)
         print("[AUDIO] Pedalboard Processor initialized SUCCESS.")
         # -------------------------------
 

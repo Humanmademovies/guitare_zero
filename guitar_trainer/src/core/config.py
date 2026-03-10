@@ -4,15 +4,18 @@ from dataclasses import dataclass
 class AppConfig:
     # --- Audio ---
     sample_rate: int = 44100
-    block_size: int = 1024  # On baisse un peu pour réduire la latence (était 1024)
+    block_size: int = 1024
     channels: int = 1
     
     # Entrée (Micro / Câble Guitare)
-    device_name_or_index: str | int | None = "H4" 
+    device_name_or_index: str | int | None = 2  # Modifié pour pointer sur le 3ème périphérique (index 2)
     
-    # Sortie (Enceintes PC) - Nouveau !
-    # Mets None pour laisser le système choisir, ou l'index/nom de tes enceintes
+    # Sortie (Enceintes PC)
     output_device_name_or_index: str | int | None = None 
+    
+    # Effets / Traitement
+    gate_threshold: float = 0.15
+    tone: float = 0.12  # Valeur par défaut du Tone
     
     # --- Analyse (Pitch & Features) ---
     fmin: float = 40.0

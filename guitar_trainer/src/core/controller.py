@@ -5,6 +5,7 @@ from ..audio.stream import AudioStream
 from ..analysis.features import FeatureExtractor
 from .campaign import CampaignManager
 from ..game.engine import GameEngine
+from ..game.studio_engine import StudioEngine
 
 class AppController:
     def __init__(self, cfg: AppConfig, state: AppState, audio: AudioStream):
@@ -13,7 +14,9 @@ class AppController:
         self.audio = audio
         self.extractor = FeatureExtractor(cfg)
         self.game_engine = GameEngine(cfg, controller=self)
+        self.studio_engine = StudioEngine(cfg)
         self.campaign_manager = CampaignManager()	
+        self.active_mode = "game" # 'game' ou 'studio'
 	
     def start_audio(self) -> None:
         self.audio.start()
@@ -44,7 +47,11 @@ class AppController:
 
         if last_features is not None:
             self.state.update_features(last_features)
-            self.game_engine.update(last_features, dt)
+            
+            if self.active_mode == "game":
+                self.game_engine.update(last_features, dt)
+            elif self.active_mode == "studio":
+                self.studio_engine.update(last_features, dt)
     
     def cycle_input_device(self, direction: int) -> None:
         devices = self.state.get_input_devices()
@@ -125,3 +132,8 @@ class AppController:
     
     def set_audio_tone(self, value: float) -> None:
         self.audio.set_tone(value)
+    
+    def set_active_mode(self, mode: str) -> None:
+        """Permet à l'UI de router les features vers le bon moteur ('game' ou 'studio')."""
+        self.active_mode = mode
+        print(f"[CONTROLLER] Mode set to: {self.active_mode}")

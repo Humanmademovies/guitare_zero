@@ -43,6 +43,11 @@ class MenuScreen(Screen):
                     
                 elif self.btn_arcade.collidepoint(event.pos):
                     self.app.change_screen("setup")
+                    
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_s:
+                if self.app:
+                    self.app.change_screen("studio")
 
     def draw(self, surface):
         surface.fill((20, 20, 30))

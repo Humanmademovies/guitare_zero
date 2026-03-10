@@ -75,8 +75,8 @@ class CampaignManager:
             if "scores" not in self.progress[campaign_id]:
                 self.progress[campaign_id]["scores"] = {}
                 
-            current_best = self.progress[campaign_id]["scores"].get(quest_id, 0.0)
-            if percent > current_best:
+            # On enregistre si c'est la première fois OU si le score est meilleur
+            if quest_id not in self.progress[campaign_id]["scores"] or percent > self.progress[campaign_id]["scores"][quest_id]:
                 self.progress[campaign_id]["scores"][quest_id] = percent
                 self.save_progress()
 

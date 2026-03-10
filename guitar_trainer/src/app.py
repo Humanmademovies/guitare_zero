@@ -14,6 +14,7 @@ from .ui.screens.game_setup_screen import GameSetupScreen
 from .ui.screens.campaign_menu_screen import CampaignMenuScreen
 from .ui.screens.quest_list_screen import QuestListScreen
 from .ui.screens.quest_result_screen import QuestResultScreen
+from .ui.screens.studio_screen import StudioScreen
 
 def main() -> int:
     print("--------------------------------------------------")
@@ -49,8 +50,7 @@ def main() -> int:
 
         app = PygameApp(cfg, state, controller)
         print("[INIT] UI Engine created.")
-	
-        controller.app = app
+        
         # --- CRÉATION DES ÉCRANS ---
         menu_screen = MenuScreen(cfg, state, controller)
         tuner_screen = TunerScreen(cfg, state, controller)
@@ -65,6 +65,7 @@ def main() -> int:
         app.register_screen("campaign_menu", CampaignMenuScreen(cfg, state, controller))
         app.register_screen("quest_list", QuestListScreen(cfg, state, controller))
         app.register_screen("quest_result", QuestResultScreen(cfg, state, controller))
+        app.register_screen("studio", StudioScreen(cfg, state, controller))
         # --- DÉMARRAGE SUR LE MENU ---
         app.change_screen("menu")
         print("[INIT] Starting Main Loop...")
