@@ -21,7 +21,7 @@ class AppConfig:
     fmin: float = 40.0
     fmax: float = 2000.0
     confidence_threshold: float = 0.2
-    rms_threshold: float = 0.001
+    rms_threshold: float = 0.01
     flatness_threshold: float = 0.15
     
     # --- Stabilité ---

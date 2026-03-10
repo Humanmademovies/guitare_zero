@@ -15,8 +15,9 @@ class AudioStream:
         self.stream = None
         self.running = False
         self._last_rms = 0.0
-        
         self.processor = None
+        self._playback_buffer = None
+        self._playback_pos = 0
 
     def start(self) -> None:
         if self.running:
@@ -94,20 +95,28 @@ class AudioStream:
         except queue.Full:
             pass
 
-        # 2. Traitement Audio
+        # 2. Mixage du sample en lecture dans le signal d'entrée
+        mix = indata.copy()
+        if self._playback_buffer is not None:
+            buf = self._playback_buffer
+            pos = self._playback_pos
+            remaining = len(buf) - pos
+            n = min(frames, remaining)
+            mix[:n, 0] += buf[pos:pos + n]
+            self._playback_pos += n
+            if self._playback_pos >= len(buf):
+                self._playback_buffer = None
+                self._playback_pos = 0
+
+        # 3. Traitement Audio
         if self.processor:
             try:
-                # Transpose pour pedalboard: (channels, samples)
-                input_matrix = indata.T
-                processed_matrix = self.processor.process(input_matrix)
+                processed_matrix = self.processor.process(mix.T)
                 outdata[:] = processed_matrix.T
             except Exception:
-                # Fallback en cas de crash du plugin : Bypass (Son clair)
-                outdata[:] = indata
+                outdata[:] = mix
         else:
-            # Pas de processeur : Bypass (Son clair)
-            # Auparavant c'était silence (0), maintenant on laisse passer le son
-            outdata[:] = indata
+            outdata[:] = mix
 
     def _compute_rms(self, samples: np.ndarray) -> float:
         return float(np.sqrt(np.mean(samples**2)))
@@ -128,3 +137,7 @@ class AudioStream:
     def set_tone(self, value: float) -> None:
         if self.processor:
             self.processor.set_tone(value)
+    
+    def play_sample(self, samples: np.ndarray) -> None:
+        self._playback_buffer = samples.astype('float32')
+        self._playback_pos = 0

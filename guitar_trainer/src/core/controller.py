@@ -138,3 +138,6 @@ class AppController:
         """Permet à l'UI de router les features vers le bon moteur ('game' ou 'studio')."""
         self.active_mode = mode
         print(f"[CONTROLLER] Mode set to: {self.active_mode}")
+    
+    def play_sample(self, samples) -> None:
+        self.audio.play_sample(samples)
