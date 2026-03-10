@@ -53,6 +53,10 @@ class StudioScreen(Screen):
                 engine.next_target()
             elif event.key == pygame.K_LEFT:
                 engine.prev_target()
+            elif event.key == pygame.K_UP:
+                self._jump_string(-1)
+            elif event.key == pygame.K_DOWN:
+                self._jump_string(1)
             elif event.key == pygame.K_SPACE:
                 self._play_current_sample()
             elif event.key == pygame.K_r:
@@ -81,6 +85,20 @@ class StudioScreen(Screen):
             idx = (start + 1 + i) % len(engine.targets)
             if not engine.targets[idx]["done"]:
                 engine.current_idx = idx
+                engine.reset_recording()
+                return
+                
+    def _jump_string(self, direction):
+        engine = self.controller.studio_engine
+        target = engine.get_current_target()
+        if not target:
+            return
+        current_string = target["string"]
+        current_fret = target["fret"]
+        new_string = current_string - direction
+        for i, t in enumerate(engine.targets):
+            if t["string"] == new_string and t["fret"] == current_fret:
+                engine.current_idx = i
                 engine.reset_recording()
                 return
 
@@ -240,6 +258,6 @@ class StudioScreen(Screen):
         surface.blit(txt, (self.W // 2 - txt.get_width() // 2, y))
 
     def _draw_hints(self, surface):
-        hints = "G/D : naviguer  |  N : prochain vide  |  R : refaire  |  ESPACE : écouter  |  Echap : quitter  |  GATE/PURE : souris"
+        hints = hints = "G/D : case  |  H/B : corde  |  N : prochain vide  |  R : refaire  |  ESPACE : écouter  |  Echap : quitter"
         txt = self.font_hint.render(hints, True, (70, 70, 70))
         surface.blit(txt, (self.W // 2 - txt.get_width() // 2, int(self.H * 0.95)))

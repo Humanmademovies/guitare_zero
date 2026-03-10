@@ -96,7 +96,7 @@ class AudioStream:
             pass
 
         # 2. Mixage du sample en lecture dans le signal d'entrée
-        mix = indata.copy()
+        mix = np.array(indata, dtype='float32', copy=True)
         if self._playback_buffer is not None:
             buf = self._playback_buffer
             pos = self._playback_pos
@@ -111,7 +111,8 @@ class AudioStream:
         # 3. Traitement Audio
         if self.processor:
             try:
-                processed_matrix = self.processor.process(mix.T)
+                input_contiguous = np.ascontiguousarray(mix.T, dtype='float32')
+                processed_matrix = self.processor.process(input_contiguous)
                 outdata[:] = processed_matrix.T
             except Exception:
                 outdata[:] = mix
