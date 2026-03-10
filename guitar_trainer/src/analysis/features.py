@@ -1,35 +1,10 @@
 import numpy as np
-import math
 from ..core.config import AppConfig
 from ..core.types import AudioBlock, Features
 from .pitch import PitchTracker
 from .stability import StabilityTracker
 
-# Constantes musicales
-NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
-def hz_to_note_data(hz: float) -> tuple[str, float]:
-    """
-    Convertit Hz en (NomNote, Cents).
-    Ex: 440 -> ("A4", 0.0)
-    Ex: 445 -> ("A4", +19.5)
-    """
-    if hz <= 0:
-        return "-", 0.0
-        
-    # Formule MIDI : 69 = A4 (440Hz)
-    # pitch_midi = 12 * log2(fm / 440) + 69
-    midi_float = 12 * np.log2(hz / 440.0) + 69
-    
-    midi_round = round(midi_float)
-    cents = (midi_float - midi_round) * 100
-    
-    # Trouver le nom
-    note_index = midi_round % 12
-    octave = (midi_round // 12) - 1
-    
-    note_name = f"{NOTE_NAMES[note_index]}{octave}"
-    return note_name, cents
 
 class FeatureExtractor:
     def __init__(self, cfg):

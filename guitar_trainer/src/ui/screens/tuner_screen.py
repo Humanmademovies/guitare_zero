@@ -178,9 +178,13 @@ class TunerScreen(Screen):
             
             if all(self.tuned_strings.values()):
                 manager = self.controller.campaign_manager
-                quest = manager.get_quest(self.state.selected_campaign_id, self.state.selected_quest_id)
+                camp_id = self.state.selected_campaign_id
+                quest_id = self.state.selected_quest_id
+                quest = manager.get_quest(camp_id, quest_id)
+                manager.save_quest_score(camp_id, quest_id, 100.0)
                 if quest.get("next_quest"):
-                    manager.unlock_quest(self.state.selected_campaign_id, quest["next_quest"])
+                    manager.unlock_quest(camp_id, quest["next_quest"])
+                self.controller.game_engine.quest_percent = 100.0
                 self.app.change_screen("quest_result")
 
     def draw(self, surface):

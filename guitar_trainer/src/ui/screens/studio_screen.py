@@ -3,9 +3,7 @@ from .base import Screen
 
 class StudioScreen(Screen):
     def __init__(self, cfg, state, controller):
-        self.cfg = cfg
-        self.state = state
-        self.controller = controller
+        super().__init__(cfg, state, controller)
         self.font_main = pygame.font.SysFont(None, self.cfg.font_size_main)
         self.font_small = pygame.font.SysFont(None, 36)
         

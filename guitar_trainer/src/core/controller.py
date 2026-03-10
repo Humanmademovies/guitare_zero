@@ -47,10 +47,11 @@ class AppController:
 
         if last_features is not None:
             self.state.update_features(last_features)
-            
-            if self.active_mode == "game":
-                self.game_engine.update(last_features, dt)
-            elif self.active_mode == "studio":
+
+        if self.active_mode == "game":
+            self.game_engine.update(last_features, dt)
+        elif self.active_mode == "studio":
+            if last_features is not None:
                 self.studio_engine.update(last_features, dt)
     
     def cycle_input_device(self, direction: int) -> None:

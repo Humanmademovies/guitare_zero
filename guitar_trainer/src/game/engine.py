@@ -85,6 +85,8 @@ class GameEngine:
     def update(self, features, dt: float):
         if self.state in [STATE_IDLE, STATE_GAME_OVER, STATE_VICTORY]:
             return
+        if features is None and not self.quest_mode:
+            return
 
         self.state_timer += dt
         
@@ -127,8 +129,8 @@ class GameEngine:
         if target:
             self.target_note = target["note"]
             self.target_position = (target["string"], target["fret"])
-            
-            if features.note_name == target["note"] and features.stable:
+
+            if features and features.note_name == target["note"] and features.stable:
                 timing_err = self.song_time_beats - target["beat"]
                 if abs(timing_err) <= tol_t:
                     target["status"] = "hit"
@@ -148,7 +150,7 @@ class GameEngine:
             self.state = STATE_LISTEN
             self.state_timer = 0.0
         elif self.state == STATE_LISTEN:
-            if features.note_name == self.target_note and features.stable:
+            if features and features.note_name == self.target_note and features.stable:
                 self.reaction_time = self.state_timer
                 self._handle_success()
             elif self.state_timer > self.settings.note_duration:

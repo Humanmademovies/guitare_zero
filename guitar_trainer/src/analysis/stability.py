@@ -31,8 +31,3 @@ class StabilityTracker:
         is_stable = all(abs(c) <= self.cfg.stable_cents_tolerance for c in self.buffer)
         return is_stable
 
-    def _reset(self):
-        self.current_note_name = None
-        self.stable_start_time = None
-        self.is_stable = False
-        self.stable_ms = 0.0

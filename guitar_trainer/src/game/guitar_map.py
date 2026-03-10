@@ -55,12 +55,4 @@ GUITAR_MAP = {
     "E5":  [(1, 12)]
 }
 
-# Liste des notes disponibles pour le mode Facile (Position 1, Cases 0-3)
-EASY_MODE_NOTES = [
-    "E2", "F2", "G2",       # Corde 6
-    "A2", "B2", "C3",       # Corde 5
-    "D3", "E3", "F3",       # Corde 4
-    "G3", "A3",             # Corde 3
-    "B3", "C4", "D4",       # Corde 2
-    "E4", "F4", "G4"        # Corde 1
-]
+
