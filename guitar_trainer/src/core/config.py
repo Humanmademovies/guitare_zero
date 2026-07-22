@@ -30,7 +30,7 @@ class AppConfig:
     
     # --- UI ---
     window_title: str = "Guitar Trainer MVP"
-    window_size: tuple[int, int] = (1280, 720)
+    window_size: tuple[int, int] = (1600, 1200)
     fps: int = 60
     font_size_main: int = 48
     font_size_debug: int = 24
