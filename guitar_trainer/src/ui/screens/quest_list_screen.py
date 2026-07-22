@@ -61,6 +61,21 @@ class QuestListScreen(Screen):
         self.scroll_offset = 0
         self._clamp_scroll()
 
+    def on_exit(self):
+        # Ne pas laisser la preview sonner sur les autres écrans
+        self.controller.stop_preview()
+
+    def _preview_selected(self):
+        if not self.quest_items:
+            return
+        item = self.quest_items[self.selected_idx]
+        if not item["unlocked"]:
+            return
+        if self.controller.is_preview_playing():
+            self.controller.stop_preview()
+            return
+        self.controller.play_quest_preview(self.state.selected_campaign_id, item["id"])
+
     def _clamp_scroll(self):
         if self.selected_idx < self.scroll_offset:
             self.scroll_offset = self.selected_idx
@@ -123,6 +138,8 @@ class QuestListScreen(Screen):
                 self._move_cursor(1)
             elif event.key == pygame.K_RETURN:
                 self._launch_selected()
+            elif event.key == pygame.K_p:
+                self._preview_selected()
 
         elif event.type == pygame.MOUSEWHEEL:
             self._move_cursor(-event.y)
@@ -192,5 +209,9 @@ class QuestListScreen(Screen):
             thumb_y = track_y + int((track_h - thumb_h) * (self.scroll_offset / max(1, total - self.max_visible)))
             pygame.draw.rect(surface, (0, 200, 200), (track_x, thumb_y, track_w, thumb_h), border_radius=3)
 
-        hint = self.font_hint.render("Haut/Bas : naviguer  |  Entrée : lancer  |  Echap : retour", True, (80, 80, 80))
+        hint = self.font_hint.render("Haut/Bas : naviguer  |  Entrée : lancer  |  P : écouter  |  Echap : retour", True, (80, 80, 80))
         surface.blit(hint, (W // 2 - hint.get_width() // 2, int(H * 0.95)))
+
+        if self.controller.is_preview_playing():
+            playing = self.font_tier.render("> ÉCOUTE EN COURS (P : stop)", True, (0, 255, 255))
+            surface.blit(playing, (W - playing.get_width() - int(W * 0.05), int(H * 0.12)))

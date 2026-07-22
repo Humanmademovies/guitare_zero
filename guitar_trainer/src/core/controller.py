@@ -6,6 +6,7 @@ from ..analysis.features import FeatureExtractor
 from .campaign import CampaignManager
 from ..game.engine import GameEngine
 from ..game.studio_engine import StudioEngine
+from ..game.preview import PreviewPlayer
 
 class AppController:
     def __init__(self, cfg: AppConfig, state: AppState, audio: AudioStream):
@@ -16,6 +17,7 @@ class AppController:
         self.game_engine = GameEngine(cfg, controller=self)
         self.studio_engine = StudioEngine(cfg)
         self.campaign_manager = CampaignManager()
+        self.preview_player = PreviewPlayer(sample_rate=cfg.sample_rate)
         self.active_mode = "game" # 'game' ou 'studio'
         self._meter_timer = 0.0
         # Lissage des paramètres d'effets : chaque changement re-prépare le
@@ -176,3 +178,19 @@ class AppController:
     
     def play_sample(self, samples) -> None:
         self.audio.play_sample(samples)
+
+    def play_quest_preview(self, camp_id: str, quest_id: str) -> bool:
+        """Joue la séquence d'une quête avec les samples du Studio.
+        Retourne False si la quête n'est pas prévisualisable."""
+        quest = self.campaign_manager.get_quest(camp_id, quest_id)
+        track = self.preview_player.render_quest(quest) if quest else None
+        if track is None:
+            return False
+        self.audio.play_sample(track)
+        return True
+
+    def stop_preview(self) -> None:
+        self.audio.stop_sample()
+
+    def is_preview_playing(self) -> bool:
+        return self.audio.is_sample_playing()

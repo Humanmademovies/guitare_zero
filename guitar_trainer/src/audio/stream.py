@@ -187,3 +187,10 @@ class AudioStream:
     def play_sample(self, samples: np.ndarray) -> None:
         self._playback_buffer = samples.astype('float32')
         self._playback_pos = 0
+
+    def stop_sample(self) -> None:
+        self._playback_buffer = None
+        self._playback_pos = 0
+
+    def is_sample_playing(self) -> bool:
+        return self._playback_buffer is not None
