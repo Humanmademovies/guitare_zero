@@ -47,6 +47,8 @@ class AudioStream:
         self.processor = AudioProcessor(self.cfg.sample_rate, self.cfg.block_size)
         self.processor.set_gate_threshold(self.cfg.gate_threshold)
         self.processor.set_tone(self.cfg.tone)
+        self.processor.set_drive(self.cfg.drive)
+        self.processor.set_volume(self.cfg.volume)
         print("[AUDIO] Pedalboard Processor initialized SUCCESS.")
         # -------------------------------
 

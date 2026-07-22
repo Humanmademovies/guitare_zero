@@ -74,17 +74,18 @@ class TunerScreen(Screen):
         k2_x = start_x + step * 2.5
         self.knob_pure = Knob(int(k2_x), knob_y, knob_radius, "PURE", cfg.flatness_threshold, 0.0, 1.0)
 
-        # 4. DRIVE
+        # 4. DRIVE — initialisé depuis la config (comme tous les knobs :
+        # sinon l'affichage ment sur l'état réel du processeur au démarrage)
         k3_x = start_x + step * 3.5
-        self.knob_drive = Knob(int(k3_x), knob_y, knob_radius, "DRIVE", 0.0, 0.0, 1.0)
+        self.knob_drive = Knob(int(k3_x), knob_y, knob_radius, "DRIVE", cfg.drive, 0.0, 1.0)
 
         # 5. TONE
         k4_x = start_x + step * 4.5
-        self.knob_tone = Knob(int(k4_x), knob_y, knob_radius, "TONE", 0.8, 0.0, 1.0)
+        self.knob_tone = Knob(int(k4_x), knob_y, knob_radius, "TONE", cfg.tone, 0.0, 1.0)
 
         # 6. VOLUME
         k5_x = start_x + step * 5.5
-        self.knob_vol = Knob(int(k5_x), knob_y, knob_radius, "VOL", 0.8, 0.0, 1.0)
+        self.knob_vol = Knob(int(k5_x), knob_y, knob_radius, "VOL", cfg.volume, 0.0, 1.0)
 
         self.status_light = StatusLight((W - 50, 50), 20)
         self.lbl_stable = TextLabel(self.font_small, (W - 80, 40), align="topright")

@@ -18,6 +18,10 @@ class AppController:
         self.campaign_manager = CampaignManager()
         self.active_mode = "game" # 'game' ou 'studio'
         self._meter_timer = 0.0
+        # Lissage des paramètres d'effets : chaque changement re-prépare le
+        # plugin pedalboard (clic audible) -> on n'applique qu'à ~10 Hz
+        self._pending_params: dict[str, float] = {}
+        self._param_flush_timer = 0.0
 	
     def start_audio(self) -> None:
         ok = self.audio.start()
@@ -58,6 +62,14 @@ class AppController:
         elif self.active_mode == "studio":
             if last_features is not None:
                 self.studio_engine.update(last_features, dt)
+
+        # Application différée des paramètres d'effets (10 Hz max)
+        self._param_flush_timer += dt
+        if self._param_flush_timer >= 0.1 and self._pending_params:
+            self._param_flush_timer = 0.0
+            for method, value in self._pending_params.items():
+                getattr(self.audio, method)(value)
+            self._pending_params.clear()
 
         # Relevé du métreur audio (hors callback), affiché seulement si anomalie
         self._meter_timer += dt
@@ -142,16 +154,20 @@ class AppController:
         save_config(self.cfg)
 
     def set_audio_gate(self, value: float) -> None:
-        self.audio.set_gate_threshold(value)
+        self.cfg.gate_threshold = value
+        self._pending_params["set_gate_threshold"] = value
 
     def set_audio_drive(self, value: float) -> None:
-        self.audio.set_drive(value)
+        self.cfg.drive = value
+        self._pending_params["set_drive"] = value
 
     def set_audio_volume(self, value: float) -> None:
-        self.audio.set_volume(value)
-    
+        self.cfg.volume = value
+        self._pending_params["set_volume"] = value
+
     def set_audio_tone(self, value: float) -> None:
-        self.audio.set_tone(value)
+        self.cfg.tone = value
+        self._pending_params["set_tone"] = value
     
     def set_active_mode(self, mode: str) -> None:
         """Permet à l'UI de router les features vers le bon moteur ('game' ou 'studio')."""

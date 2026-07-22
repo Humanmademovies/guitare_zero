@@ -22,7 +22,9 @@ class AppConfig:
     # Effets / Traitement
     input_gain: float = 2.0  # Gain logiciel d'entrée (guitare passive -> signal faible)
     gate_threshold: float = 0.05
-    tone: float = 0.12  # Valeur par défaut du Tone
+    tone: float = 0.6    # Coupure du filtre : 400 + v*11600 Hz (0.6 ~ 7,4 kHz)
+    drive: float = 0.0   # 0 = disto hors chaîne
+    volume: float = 0.8  # Gain de sortie du monitoring
 
     # --- Analyse (Pitch & Features) ---
     fmin: float = 40.0
