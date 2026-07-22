@@ -19,12 +19,19 @@ Plan établi à la reprise du 2026-07-22, gradé **U** = urgence (1→5) et **S*
 | Config persistante `config.json` (fermeture, sortie accordeur, changement de périphérique) | `62a2faa` |
 | Périphériques mémorisés par nom (les index ALSA changent au reboot) | `62a2faa` |
 | DSP pedalboard (C++/JUCE) : ~0,03 ms/bloc contre ~8 ms en Python pur (×266) + log des xruns | `d2277d9` |
+| Bloc 512 + fenêtre yin fixe 2048 (256 abandonné : xruns par contention GIL avec l'UI) | `d635ac7` |
+| Spectrogramme vectorisé (20,9 → 1,25 ms/frame) — cause des dropouts du tuner | `1d164cf` |
+| Écrêtage doux tanh en sortie (fini le clipping dur « pixélisé » ; `Limiter` pedalboard rejeté : maximiseur) | `a8aa8a0` |
+| Métrologie hors-callback (le print dans le callback créait ses propres dropouts) | `a8aa8a0` |
+| Routage PipeWire exposé : entrée+sortie « pipewire » = enceintes du bureau, 11,6 ms/côté | `a8aa8a0` |
+| Calibration d'entrée documentée (volume guitare bas + GAIN logiciel — l'ADC du câble écrête à la source) | README |
 
 ## Restant
 
 | # | Action | U | S | Notes |
 |---|--------|---|---|-------|
-| 10b | Bloc 256 + fenêtre d'analyse découplée (latence ~6-12 ms) | 3 | 3 | Rendu possible par pedalboard ; attention : la fenêtre yin doit rester à 2048 indépendamment du bloc, sinon les cordes graves (E2/A2) ne sont plus détectées |
+| 15 | Sync knobs ↔ config au démarrage + lissage des paramètres | 3 | 3 | Au lancement, TONE affiche 0,8 mais le filtre est à 0,12 (idem VOL) ; et chaque mouvement de potard re-prépare le filtre pedalboard → clics violents pendant le drag (throttler ~10 Hz ou appliquer au relâchement) |
+| 16 | IR de cabinet (`pedalboard.Convolution`) | 2 | 3 | Le signal est propre désormais : un IR de baffle (WAV libre, ~50 Ko) donnerait le rendu « ampli micro-capté » ; potard de mix éventuel |
 | 11 | Phase B d'Archi.md : `PreviewPlayer` + bouton « Écouter la quête » | 2 | 2 | Les 60 samples de `data/samples/` existent (Phase A faite), rien ne les exploite |
 | 12 | Trancher : consolider Pygame vs web app auto-hébergée (nerdodrome) | 2 | 2 | Electron écarté (aucun gain audio vs navigateur) ; décider avant d'investir dans le point 11 |
 | 13 | Accords et mélodies (nouveaux types de quêtes) | 2 | 1 | Annoncés dans l'intro d'Archi.md, inexistants ; une seule campagne (`debutant.json`) |
@@ -35,3 +42,5 @@ Plan établi à la reprise du 2026-07-22, gradé **U** = urgence (1→5) et **S*
 - `guitar_trainer/run.sh` cherche `environment.yml` à côté de lui (il est à la racine) : `-f ../environment.yml`.
 - `sudo alsactl store` sur pop-os pour pérenniser le volume ALSA de la carte USB.
 - `state.set_error` est branché, mais les erreurs de `resolve_device_index` (warning console) pourraient l'utiliser aussi.
+- Si des dropouts résiduels apparaissent : priorité temps réel du thread audio (rtkit / profil pro-audio PipeWire).
+- Matériel, un jour : interface avec vraie entrée Hi-Z (1 MΩ) — le câble TTGK reste le plafond de qualité de la chaîne.
