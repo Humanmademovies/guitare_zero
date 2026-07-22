@@ -1,3 +1,5 @@
 *.wav
 *__pycache__*
 config.json
+campaign_save.json
+highscores.json
