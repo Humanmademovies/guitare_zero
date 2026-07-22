@@ -1,45 +1,49 @@
 import pygame
-import math
 import numpy as np
 
 class SpectrogramWidget:
+    """Spectrogramme défilant, rendu vectorisé.
+
+    L'ancienne version dessinait chaque cellule avec pygame.draw.rect :
+    jusqu'à 300 colonnes x 120 bins = 36 000 itérations Python PAR FRAME à
+    60 FPS, ce qui affamait le callback audio (GIL) et faisait cracker le son
+    dans l'accordeur. Ici : toute la matrice est calculée d'un bloc en numpy,
+    convertie en surface 1 pixel/cellule puis étirée en un seul appel C.
+    """
+
     def __init__(self, rect: pygame.Rect, max_history: int, num_bins: int = 120):
         self.rect = rect
         self.max_history = max_history
         self.num_bins = num_bins
-        # Pré-calcul de la hauteur d'un bin pour éviter de le refaire à chaque frame
-        self.bin_height = self.rect.height / self.num_bins
 
     def draw(self, surface: pygame.Surface, history: list[np.ndarray]) -> None:
         if not history:
             return
 
-        # Largeur d'une colonne (dépend de la taille de l'historique max définie dans l'app)
-        # On utilise max_history pour que le défilement soit fluide (la largeur ne saute pas au début)
-        col_width = self.rect.width / self.max_history
-        
+        n = len(history)
+
+        # Matrice (colonnes, bins) des valeurs spectrales
+        arr = np.zeros((n, self.num_bins), dtype=np.float32)
         for i, spec in enumerate(history):
-            x = self.rect.x + i * col_width
-            
-            # On parcourt les fréquences (bins)
-            for j in range(self.num_bins):
-                # Protection si le spectre est plus petit que prévu
-                val = spec[j] if j < len(spec) else 0
-                
-                # Calcul de l'intensité (logarithmique pour mieux voir les sons faibles)
-                intensity = min(255, int(math.log1p(val) * 50))
-                
-                if intensity > 10:
-                    # Couleur : Cyan sombre -> Bleu -> Blanc
-                    color = (intensity // 2, intensity, intensity // 4)
-                    
-                    # Position Y (le bas du rectangle correspond aux basses fréquences)
-                    y = self.rect.bottom - (j * self.bin_height)
-                    
-                    # Dessin du point (rect)
-                    # +1 sur les dimensions pour éviter les micro-espaces noirs entre les rectangles
-                    pygame.draw.rect(
-                        surface, 
-                        color, 
-                        (x, y - self.bin_height, col_width + 1, self.bin_height + 1)
-                    )
+            m = min(self.num_bins, len(spec))
+            arr[i, :m] = spec[:m]
+
+        # Intensité logarithmique (même formule que l'ancien rendu), seuil à 10
+        intensity = np.minimum(np.log1p(arr) * 50.0, 255.0)
+        intensity[intensity <= 10.0] = 0.0
+        intensity = intensity.astype(np.uint8)
+
+        # Couleurs cyan sombre -> blanc (R = I/2, G = I, B = I/4),
+        # basses fréquences en bas (flip de l'axe des bins)
+        rgb = np.empty((n, self.num_bins, 3), dtype=np.uint8)
+        rgb[..., 0] = intensity // 2
+        rgb[..., 1] = intensity
+        rgb[..., 2] = intensity // 4
+        rgb = rgb[:, ::-1, :]
+
+        # 1 pixel par cellule, puis étirement vers la zone occupée
+        # (largeur proportionnelle à n/max_history : même défilement qu'avant)
+        img = pygame.surfarray.make_surface(np.ascontiguousarray(rgb))
+        target_w = max(1, int(self.rect.width * n / self.max_history))
+        scaled = pygame.transform.scale(img, (target_w, self.rect.height))
+        surface.blit(scaled, (self.rect.x, self.rect.y))

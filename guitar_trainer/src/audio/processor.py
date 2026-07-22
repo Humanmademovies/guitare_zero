@@ -17,14 +17,18 @@ class AudioProcessor:
         self.sample_rate = sample_rate
         self.block_size = block_size
 
-        # Attack/release repris de l'ancien SoftGate (5 ms / 50 ms)
-        self._gate = NoiseGate(threshold_db=-100.0, ratio=10.0,
-                               attack_ms=5.0, release_ms=50.0)
+        # Gate volontairement doux (ratio faible, release long) : un ratio fort
+        # avec un release court "hache" la fin des notes quand le niveau oscille
+        # autour du seuil — l'ancien SoftGate à enveloppe était plus musical.
+        self._gate = NoiseGate(threshold_db=-100.0, ratio=4.0,
+                               attack_ms=5.0, release_ms=150.0)
         self._disto = Distortion(drive_db=0.0)
         self._tone = LowpassFilter(cutoff_frequency_hz=10000.0)
         self._reverb = Reverb(room_size=0.5, wet_level=0.2, dry_level=0.8, width=1.0)
         self._gain = Gain(gain_db=0.0)
-        self.board = Pedalboard([self._gate, self._disto, self._tone,
+        # La disto n'est PAS dans la chaîne par défaut (drive 0 = bypass),
+        # set_drive() l'insère/retire selon la valeur du potard.
+        self.board = Pedalboard([self._gate, self._tone,
                                  self._reverb, self._gain])
 
     def process(self, input_audio: np.ndarray) -> np.ndarray:
@@ -39,8 +43,16 @@ class AudioProcessor:
         self._gate.threshold_db = 20.0 * math.log10(linear)
 
     def set_drive(self, value: float) -> None:
-        # Ancien mapping : gain linéaire 1 + value*20 avant écrêtage tanh
-        self._disto.drive_db = 20.0 * math.log10(1.0 + float(value) * 20.0)
+        # Ancien mapping : gain linéaire 1 + value*20 avant écrêtage tanh.
+        # À drive ~0 on RETIRE la disto de la chaîne (l'ancien code la court-
+        # circuitait : le tanh de pedalboard colorerait sinon même à 0 dB).
+        if value <= 0.01:
+            if self._disto in self.board:
+                self.board.remove(self._disto)
+        else:
+            if self._disto not in self.board:
+                self.board.insert(1, self._disto)
+            self._disto.drive_db = 20.0 * math.log10(1.0 + float(value) * 20.0)
 
     def set_tone(self, value: float) -> None:
         self._tone.cutoff_frequency_hz = 400.0 + float(value) * 11600.0
