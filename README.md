@@ -32,6 +32,7 @@ Note : `guitar_trainer/run.sh` automatise ces étapes mais cherche `environment.
 | Accordeur & jeu | `←`/`→` change l'entrée audio · `↑`/`↓` change la sortie |
 | Accordeur | potards à la souris (glisser vertical) : GAIN, GATE, PURE, DRIVE, TONE, VOL |
 | Studio | `G`/`D` case · `H`/`B` corde · `N` prochain vide · `R` refaire · `ESPACE` écouter |
+| Liste des quêtes | `P` : écouter la quête, jouée avec vos propres samples du Studio (re-`P` : stop) |
 | Menus | souris (clic + molette) |
 
 Les périphériques actifs sont affichés en bas à droite (`In (L/R)` / `Out (U/D)`).

@@ -28,13 +28,13 @@ Plan établi à la reprise du 2026-07-22, gradé **U** = urgence (1→5) et **S*
 | **Point 12 tranché : on reste sur Pygame.** L'UI est devenue résolution-indépendante, le DSP est en C++, et la qualité ampli (accès périphérique natif, PipeWire, 11,6 ms, gate anti-souffle) est impossible en navigateur ; la portabilité web était un faux besoin (on joue là où la guitare est branchée) | décision 2026-07-22 |
 | Knobs synchronisés avec la config (drive/tone/volume persistés — le tone restait bloqué à 0,12 = 1,8 kHz à chaque démarrage !) + paramètres d'effets lissés à 10 Hz (fini le TONE qui « découpe » pendant le drag) | `713beb5` |
 | `latency='high'` : dropouts éliminés durablement. Prouvé par bisection : même code = sessions propres OU injouables selon l'état machine au lancement ; `'low'` imposait ~2,7 ms d'échéances au graphe PipeWire. Tone défaut ramené à 0,12 (le 0,6 saturait l'étage de gain calibré à l'oreille) | `983bf75` |
+| **Point 11 / Phase B d'Archi.md : `PreviewPlayer`** — touche P dans la liste des quêtes : séquence jouée avec les samples du Studio (strumming des accords, coupure par corde, pitch-shift 1 saut pour les 6 positions manquantes : cordes 1-2 cases 2-4) | `897840e` |
 
 ## Restant
 
 | # | Action | U | S | Notes |
 |---|--------|---|---|-------|
 | 16 | IR de cabinet (`pedalboard.Convolution`) | 2 | 3 | Le signal est propre désormais : un IR de baffle (WAV libre, ~50 Ko) donnerait le rendu « ampli micro-capté » ; potard de mix éventuel |
-| 11 | Phase B d'Archi.md : `PreviewPlayer` + bouton « Écouter la quête » | 2 | 2 | Les 60 samples de `data/samples/` existent (Phase A faite), rien ne les exploite |
 | 13 | Accords et mélodies (nouveaux types de quêtes) | 2 | 1 | Annoncés dans l'intro d'Archi.md, inexistants ; une seule campagne (`debutant.json`) |
 | 14 | Pipeline Custom Tracks (Demucs + Basic Pitch + Mapper) | 1 | 1 | Plan détaillé en fin d'Archi.md ; outil externe hors-ligne, indépendant de la techno du jeu |
 
@@ -48,3 +48,4 @@ Plan établi à la reprise du 2026-07-22, gradé **U** = urgence (1→5) et **S*
 - Latence configurable dans config.json (`high` robuste / `low` toucher) si la latence de monitoring devient gênante.
 - Le graphe PipeWire tourne à 48 kHz, le jeu à 44,1 (rééchantillonnage permanent) : caler le jeu sur 48 kHz éviterait la conversion (attention aux 60 samples wav en 44,1).
 - Matériel, un jour : interface avec vraie entrée Hi-Z (1 MΩ) — le câble TTGK reste le plafond de qualité de la chaîne.
+- Enregistrer en mode Studio les 6 positions manquantes (cordes 1-2, cases 2-4) : les pitch-shifts de la preview s'effaceront automatiquement.

@@ -2,7 +2,7 @@
 >
 > - Le MVP est implémenté et dépassé : `core/controller.py` (recommandé plus bas) existe, ainsi que 8 écrans (menu, accordeur, jeu, setup, campagne, quêtes, résultats, studio), un moteur de jeu, les campagnes JSON et les high scores.
 > - **Mode Studio (Phase A) : ✅ fait** — 60 samples `corde_case.wav` enregistrés dans `guitar_trainer/data/samples/`.
-> - **Moteur de rendu / `PreviewPlayer` (Phase B) : ❌ à faire** — rien n'exploite encore les samples (pas de bouton « Écouter la quête »).
+> - **Moteur de rendu / `PreviewPlayer` (Phase B) : ✅ fait (2026-07-22)** — touche P dans la liste des quêtes : séquence jouée avec les samples (strumming des accords, coupure par corde, pitch-shift des positions manquantes).
 > - **Custom Tracks / Transcription (Suno) : ❌ non commencé.**
 > - Écarts notables entre cette spec et le code : les effets tournent en C++ via pedalboard dans `audio/processor.py` (l'ancien DSP maison pur Python est dans l'historique git, remplacé le 2026-07-22), l'UI dessine sur un canvas logique 1600×1200 mis à l'échelle dans une fenêtre redimensionnable (`ui/pygame_app.py`), et `AppEvents.last_error` alimente un bandeau d'erreur affiché sur tous les écrans.
 >
