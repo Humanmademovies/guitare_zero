@@ -19,6 +19,7 @@ class AudioStream:
         self._playback_buffer = None
         self._playback_pos = 0
         self.last_error: str | None = None
+        self._input_gain = float(cfg.input_gain)
 
     def start(self) -> bool:
         if self.running:
@@ -35,6 +36,7 @@ class AudioStream:
         # --- Recharger le Processeur ---
         # On utilise self.cfg ici !
         print("[DEBUG] Attempting to load AudioProcessor...")
+        self._input_gain = float(self.cfg.input_gain)
         self.processor = AudioProcessor(self.cfg.sample_rate, self.cfg.block_size)
         self.processor.set_gate_threshold(self.cfg.gate_threshold)
         self.processor.set_tone(self.cfg.tone)
@@ -86,8 +88,11 @@ class AudioStream:
         if status:
             pass # Ignorer les erreurs xrun pour l'instant
 
+        # 0. Gain d'entrée logiciel (guitare passive -> signal faible)
+        boosted = indata * self._input_gain
+
         # 1. Copie pour Analyse
-        samples = indata.flatten().copy()
+        samples = boosted.flatten()
         self._last_rms = self._compute_rms(samples)
 
         block = AudioBlock(
@@ -101,7 +106,8 @@ class AudioStream:
             pass
 
         # 2. Mixage du sample en lecture dans le signal d'entrée
-        mix = np.array(indata, dtype='float32', copy=True)
+        # (boosted est déjà une copie fraîche, samples a été extrait par flatten)
+        mix = boosted
         if self._playback_buffer is not None:
             buf = self._playback_buffer
             pos = self._playback_pos
@@ -120,13 +126,16 @@ class AudioStream:
                 processed_matrix = self.processor.process(input_contiguous)
                 outdata[:] = processed_matrix.T
             except Exception:
-                outdata[:] = mix
+                outdata[:] = np.clip(mix, -1.0, 1.0)
         else:
-            outdata[:] = mix
+            outdata[:] = np.clip(mix, -1.0, 1.0)
 
     def _compute_rms(self, samples: np.ndarray) -> float:
         return float(np.sqrt(np.mean(samples**2)))
     
+    def set_input_gain(self, value: float) -> None:
+        self._input_gain = max(0.1, float(value))
+
     def set_gate_threshold(self, value: float) -> None:
         if self.processor:
             self.processor.set_gate_threshold(value)

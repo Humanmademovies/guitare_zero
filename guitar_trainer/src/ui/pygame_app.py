@@ -1,6 +1,6 @@
 import pygame
 import sys
-from ..core.config import AppConfig
+from ..core.config import AppConfig, save_config
 from ..core.state import AppState
 from ..core.controller import AppController
 from .screens.base import Screen
@@ -85,6 +85,7 @@ class PygameApp:
             self._draw()
 
         self.controller.stop_audio()
+        save_config(self.cfg)
         pygame.quit()
         sys.exit()
 

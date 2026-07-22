@@ -1,5 +1,5 @@
 import queue
-from .config import AppConfig
+from .config import AppConfig, save_config
 from .state import AppState
 from ..audio.stream import AudioStream
 from ..analysis.features import FeatureExtractor
@@ -64,8 +64,10 @@ class AppController:
         if new_dev is None:
             return
         print(f"[CONTROLLER] Switching input to: {new_dev['name']} (Index {new_dev['index']})")
+        # On mémorise le NOM (sans suffixe hw:x,y) plutôt que l'index :
+        # les index ALSA changent d'un reboot à l'autre, pas les noms.
         self._apply_device_change(f"entrée '{new_dev['name']}'",
-                                  input_id=new_dev['index'],
+                                  input_id=new_dev['name'].split(" (hw:")[0],
                                   samplerate=int(new_dev['samplerate']))
 
     def cycle_output_device(self, direction: int) -> None:
@@ -75,7 +77,7 @@ class AppController:
             return
         print(f"[CONTROLLER] Switching OUTPUT to: {new_dev['name']} (Index {new_dev['index']})")
         self._apply_device_change(f"sortie '{new_dev['name']}'",
-                                  output_id=new_dev['index'],
+                                  output_id=new_dev['name'].split(" (hw:")[0],
                                   samplerate=int(new_dev['samplerate']))
 
     def _next_device(self, devices: list[dict], current_id, direction: int) -> dict | None:
@@ -83,7 +85,7 @@ class AppController:
             return None
         current_idx = 0
         for i, dev in enumerate(devices):
-            if dev['index'] == current_id or dev['name'] == current_id:
+            if dev['index'] == current_id or (isinstance(current_id, str) and current_id in dev['name']):
                 current_idx = i
                 break
         return devices[(current_idx + direction) % len(devices)]
@@ -110,7 +112,9 @@ class AppController:
         self.state.reset_history()
 
         self.start_audio()
-        if not self.audio.is_running():
+        if self.audio.is_running():
+            save_config(self.cfg)
+        else:
             cause = self.audio.last_error or "erreur inconnue"
             (self.cfg.device_name_or_index,
              self.cfg.output_device_name_or_index,
@@ -119,6 +123,13 @@ class AppController:
             self.state.reset_history()
             self.start_audio()
             self.state.set_error(f"Échec {label} ({cause}) — retour au périphérique précédent")
+
+    def set_audio_input_gain(self, value: float) -> None:
+        self.cfg.input_gain = value
+        self.audio.set_input_gain(value)
+
+    def save_config(self) -> None:
+        save_config(self.cfg)
 
     def set_audio_gate(self, value: float) -> None:
         self.audio.set_gate_threshold(value)

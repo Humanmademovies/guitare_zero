@@ -60,26 +60,30 @@ class TunerScreen(Screen):
         knob_y = self.rect_ctrl.centery
         knob_radius = int(self.rect_ctrl.height * 0.22)
         
-        step = width_available / 5
-        
-        # 1. GATE
-        k1_x = start_x + step * 0.5
+        step = width_available / 6
+
+        # 1. INPUT GAIN (guitare passive -> boost logiciel)
+        k0_x = start_x + step * 0.5
+        self.knob_gain = Knob(int(k0_x), knob_y, knob_radius, "GAIN", cfg.input_gain, 1.0, 8.0)
+
+        # 2. GATE
+        k1_x = start_x + step * 1.5
         self.knob_gate = Knob(int(k1_x), knob_y, knob_radius, "GATE", cfg.rms_threshold, 0.0, 1.0)
-        
-        # 2. PURITY
-        k2_x = start_x + step * 1.5
+
+        # 3. PURITY
+        k2_x = start_x + step * 2.5
         self.knob_pure = Knob(int(k2_x), knob_y, knob_radius, "PURE", cfg.flatness_threshold, 0.0, 1.0)
 
-        # 3. DRIVE
-        k3_x = start_x + step * 2.5
+        # 4. DRIVE
+        k3_x = start_x + step * 3.5
         self.knob_drive = Knob(int(k3_x), knob_y, knob_radius, "DRIVE", 0.0, 0.0, 1.0)
-        
-        # 4. TONE
-        k4_x = start_x + step * 3.5
+
+        # 5. TONE
+        k4_x = start_x + step * 4.5
         self.knob_tone = Knob(int(k4_x), knob_y, knob_radius, "TONE", 0.8, 0.0, 1.0)
 
-        # 5. VOLUME
-        k5_x = start_x + step * 4.5
+        # 6. VOLUME
+        k5_x = start_x + step * 5.5
         self.knob_vol = Knob(int(k5_x), knob_y, knob_radius, "VOL", 0.8, 0.0, 1.0)
 
         self.status_light = StatusLight((W - 50, 50), 20)
@@ -108,9 +112,16 @@ class TunerScreen(Screen):
                 return
         
         self.quest_mode = False
-        
+
+    def on_exit(self):
+        # Persiste les réglages faits aux potards (gain, seuils)
+        self.controller.save_config()
+
     def handle_event(self, event):
         # Gestion des potards
+        if self.knob_gain.handle_event(event):
+            self.controller.set_audio_input_gain(self.knob_gain.val)
+
         if self.knob_gate.handle_event(event):
             self.controller.set_audio_gate(self.knob_gate.val)
 
@@ -223,6 +234,7 @@ class TunerScreen(Screen):
         if self.quest_mode: self._draw_quest_status(surface)
         
         # Potards
+        self.knob_gain.draw(surface)
         self.knob_gate.draw(surface)
         self.knob_pure.draw(surface)
         self.knob_drive.draw(surface)

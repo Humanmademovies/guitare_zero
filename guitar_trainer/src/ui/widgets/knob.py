@@ -33,8 +33,8 @@ class Knob:
                 # Monter la souris = Augmenter la valeur
                 dy = event.rel[1]
                 
-                # Vitesse de changement
-                step = 0.01
+                # Vitesse de changement, proportionnelle à la plage du potard
+                step = (self.max_val - self.min_val) * 0.01
                 self.val -= dy * step
                 
                 # Bornage
