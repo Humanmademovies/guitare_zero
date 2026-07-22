@@ -1,7 +1,8 @@
 # Guitar Zero
 
 Entraîneur de guitare : détection de pitch en temps réel (aubio), accordeur, mode arcade,
-campagne à quêtes et studio d'échantillonnage. Python + Pygame + sounddevice.
+campagnes à quêtes (notes puis power chords, avec détection d'accords et d'attaques)
+et studio d'échantillonnage. Python + Pygame + sounddevice.
 
 ## Matériel
 

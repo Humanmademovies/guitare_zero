@@ -29,13 +29,14 @@ Plan établi à la reprise du 2026-07-22, gradé **U** = urgence (1→5) et **S*
 | Knobs synchronisés avec la config (drive/tone/volume persistés — le tone restait bloqué à 0,12 = 1,8 kHz à chaque démarrage !) + paramètres d'effets lissés à 10 Hz (fini le TONE qui « découpe » pendant le drag) | `713beb5` |
 | `latency='high'` : dropouts éliminés durablement. Prouvé par bisection : même code = sessions propres OU injouables selon l'état machine au lancement ; `'low'` imposait ~2,7 ms d'échéances au graphe PipeWire. Tone défaut ramené à 0,12 (le 0,6 saturait l'étage de gain calibré à l'oreille) | `983bf75` |
 | **Point 11 / Phase B d'Archi.md : `PreviewPlayer`** — touche P dans la liste des quêtes : séquence jouée avec les samples du Studio (strumming des accords, coupure par corde, pitch-shift 1 saut pour les 6 positions manquantes : cordes 1-2 cases 2-4) | `897840e` |
+| **Point 13 (1ʳᵉ étape) : campagne Power Chords complète et validée live** — `ChordDetector` (validation spectrale des notes attendues, matrice 6×6 parfaite au banc `tools/bench_chords.py`), groupes d'accords dans le moteur (1 accord = 1 vie/1 unité de score), campagne 8 quêtes, anti-triche par détection d'attaque aubio (accord tenu ≠ cible suivante) | `2cfd21b` `90570e7` `3deee47` |
 
 ## Restant
 
 | # | Action | U | S | Notes |
 |---|--------|---|---|-------|
 | 16 | IR de cabinet (`pedalboard.Convolution`) | 2 | 3 | Le signal est propre désormais : un IR de baffle (WAV libre, ~50 Ko) donnerait le rendu « ampli micro-capté » ; potard de mix éventuel |
-| 13 | Accords et mélodies (nouveaux types de quêtes) | 2 | 1 | Annoncés dans l'intro d'Archi.md, inexistants ; une seule campagne (`debutant.json`) |
+| 13b | Accords complets (majeurs/mineurs) et mélodies | 2 | 2 | La fondation existe (ChordDetector + groupes moteur + onset) ; restent : accords 4-6 cordes (attention aux tierces, harmoniques plus ambiguës — étendre le banc), campagnes de mélodies, et lever la limitation d'octave du détecteur |
 | 14 | Pipeline Custom Tracks (Demucs + Basic Pitch + Mapper) | 1 | 1 | Plan détaillé en fin d'Archi.md ; outil externe hors-ligne, indépendant de la techno du jeu |
 
 ## Micro-fixes en passant
