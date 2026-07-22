@@ -14,14 +14,15 @@ Plan établi à la reprise du 2026-07-22, gradé **U** = urgence (1→5) et **S*
 | `.pyc` versionnés retirés du suivi | `77b4ed7` |
 | Changement de périphérique robuste (redémarrage systématique + rollback) | `1bdecab` |
 | Erreurs audio visibles à l'écran (bandeau branché sur `state.set_error`) | `1bdecab` |
-| README + TODO + bandeau d'état dans Archi.md | (ce commit) |
+| README + TODO + bandeau d'état dans Archi.md | `1d06bba` |
+| Gain d'entrée logiciel (potard GAIN 1×–8×, défaut 2×, appliqué avant analyse et monitoring) | `62a2faa` |
+| Config persistante `config.json` (fermeture, sortie accordeur, changement de périphérique) | `62a2faa` |
+| Périphériques mémorisés par nom (les index ALSA changent au reboot) | `62a2faa` |
 
 ## Restant
 
 | # | Action | U | S | Notes |
 |---|--------|---|---|-------|
-| 7 | Gain d'entrée / rattrapage logiciel | 3 | 4 | Guitare **passive** : niveau bas structurel, un boost configurable vaut mieux que de courir après les seuils |
-| 9 | Config persistante (YAML/JSON) | 3 | 3 | Prévu dès la spec d'origine ; mémoriser aussi le dernier périphérique valide et la taille de fenêtre |
 | 10 | Remplacer le DSP pur Python de `processor.py` | 3 | 3 | Boucles par échantillon dans le callback audio (gate/tone/réverbe) ; pedalboard est dans `environment.yml` mais n'est plus utilisé |
 | 11 | Phase B d'Archi.md : `PreviewPlayer` + bouton « Écouter la quête » | 2 | 2 | Les 60 samples de `data/samples/` existent (Phase A faite), rien ne les exploite |
 | 12 | Trancher : consolider Pygame vs web app auto-hébergée (nerdodrome) | 2 | 2 | Electron écarté (aucun gain audio vs navigateur) ; décider avant d'investir dans le point 11 |
