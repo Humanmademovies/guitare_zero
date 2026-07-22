@@ -27,6 +27,7 @@ Plan établi à la reprise du 2026-07-22, gradé **U** = urgence (1→5) et **S*
 | Calibration d'entrée documentée (volume guitare bas + GAIN logiciel — l'ADC du câble écrête à la source) | README |
 | **Point 12 tranché : on reste sur Pygame.** L'UI est devenue résolution-indépendante, le DSP est en C++, et la qualité ampli (accès périphérique natif, PipeWire, 11,6 ms, gate anti-souffle) est impossible en navigateur ; la portabilité web était un faux besoin (on joue là où la guitare est branchée) | décision 2026-07-22 |
 | Knobs synchronisés avec la config (drive/tone/volume persistés — le tone restait bloqué à 0,12 = 1,8 kHz à chaque démarrage !) + paramètres d'effets lissés à 10 Hz (fini le TONE qui « découpe » pendant le drag) | `713beb5` |
+| `latency='high'` : dropouts éliminés durablement. Prouvé par bisection : même code = sessions propres OU injouables selon l'état machine au lancement ; `'low'` imposait ~2,7 ms d'échéances au graphe PipeWire. Tone défaut ramené à 0,12 (le 0,6 saturait l'étage de gain calibré à l'oreille) | `983bf75` |
 
 ## Restant
 
@@ -43,4 +44,7 @@ Plan établi à la reprise du 2026-07-22, gradé **U** = urgence (1→5) et **S*
 - `sudo alsactl store` sur pop-os pour pérenniser le volume ALSA de la carte USB.
 - `state.set_error` est branché, mais les erreurs de `resolve_device_index` (warning console) pourraient l'utiliser aussi.
 - Si des dropouts résiduels apparaissent : priorité temps réel du thread audio (rtkit / profil pro-audio PipeWire).
+- `pop-upgrade` bloqué à 100 % CPU depuis des semaines (bug Pop!_OS) : `sudo systemctl restart pop-upgrade`.
+- Latence configurable dans config.json (`high` robuste / `low` toucher) si la latence de monitoring devient gênante.
+- Le graphe PipeWire tourne à 48 kHz, le jeu à 44,1 (rééchantillonnage permanent) : caler le jeu sur 48 kHz éviterait la conversion (attention aux 60 samples wav en 44,1).
 - Matériel, un jour : interface avec vraie entrée Hi-Z (1 MΩ) — le câble TTGK reste le plafond de qualité de la chaîne.
