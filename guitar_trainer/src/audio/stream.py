@@ -59,7 +59,7 @@ class AudioStream:
                 samplerate=self.cfg.sample_rate,
                 blocksize=self.cfg.block_size,
                 dtype='float32',
-                latency='low',
+                latency='high',  # 'low' imposait des echeances de 2,7 ms au serveur audio : fragile aux a-coups CPU
                 callback=self._callback
             )
             self.stream.start()
