@@ -18,10 +18,11 @@ class AudioStream:
         self.processor = None
         self._playback_buffer = None
         self._playback_pos = 0
+        self.last_error: str | None = None
 
-    def start(self) -> None:
+    def start(self) -> bool:
         if self.running:
-            return
+            return True
         
         # Résolution des périphériques
         from .devices import resolve_device_index
@@ -51,13 +52,17 @@ class AudioStream:
             )
             self.stream.start()
             self.running = True
-            
+            self.last_error = None
+
             latency = self.stream.latency[1] * 1000 if self.stream.latency else 0
             print(f"[AUDIO] Stream started. Output Latency: ~{latency:.2f} ms")
-            
+            return True
+
         except Exception as e:
             print(f"[AUDIO CRITICAL] Failed to start stream: {e}")
+            self.last_error = str(e)
             self.running = False
+            return False
 
     def stop(self) -> None:
         if not self.running:

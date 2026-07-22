@@ -38,6 +38,11 @@ class PygameApp:
         self.canvas = pygame.Surface(self.cfg.window_size).convert()
         self._scaled = None
 
+        # Bandeau d'état (erreurs audio, flux arrêté) affiché par-dessus tous les écrans
+        self.font_banner = pygame.font.SysFont("monospace", 30, bold=True)
+        self._banner_err = None
+        self._banner_since = 0
+
         self.clock = pygame.time.Clock()
         self.running = False
 
@@ -124,10 +129,36 @@ class PygameApp:
         if self.current_screen:
             self.current_screen.update(dt)
 
+    def _draw_status_banner(self, surface) -> None:
+        """Bandeau haut : erreur audio (8 s) ou flux arrêté, quel que soit l'écran."""
+        err = self.state.get_error()
+        if err:
+            now = pygame.time.get_ticks()
+            if err != self._banner_err:
+                self._banner_err = err
+                self._banner_since = now
+            if now - self._banner_since > 8000:
+                return
+            msg, bg = f"[!] {err}", (120, 20, 20)
+        elif not self.state.is_audio_running():
+            self._banner_err = None
+            msg, bg = "AUDIO ARRÊTÉ — ESPACE pour relancer", (110, 85, 10)
+        else:
+            self._banner_err = None
+            return
+
+        txt = self.font_banner.render(msg, True, (255, 255, 255))
+        w = surface.get_width()
+        band = pygame.Surface((w, txt.get_height() + 16), pygame.SRCALPHA)
+        band.fill((*bg, 220))
+        surface.blit(band, (0, 0))
+        surface.blit(txt, ((w - txt.get_width()) // 2, 8))
+
     def _draw(self) -> None:
         self.canvas.fill((10, 10, 10))
         if self.current_screen:
             self.current_screen.draw(self.canvas)
+        self._draw_status_banner(self.canvas)
 
         s, ox, oy = self._view_params()
         logical_w, logical_h = self.cfg.window_size

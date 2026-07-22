@@ -19,8 +19,12 @@ class AppController:
         self.active_mode = "game" # 'game' ou 'studio'
 	
     def start_audio(self) -> None:
-        self.audio.start()
-        self.state.set_audio_running(True)
+        ok = self.audio.start()
+        self.state.set_audio_running(ok)
+        if ok:
+            self.state.set_error(None)
+        else:
+            self.state.set_error(f"Audio KO : {self.audio.last_error or 'erreur inconnue'}")
 
     def stop_audio(self) -> None:
         self.audio.stop()
@@ -55,72 +59,66 @@ class AppController:
                 self.studio_engine.update(last_features, dt)
     
     def cycle_input_device(self, direction: int) -> None:
-        devices = self.state.get_input_devices()
-        if not devices:
+        new_dev = self._next_device(self.state.get_input_devices(),
+                                    self.cfg.device_name_or_index, direction)
+        if new_dev is None:
             return
+        print(f"[CONTROLLER] Switching input to: {new_dev['name']} (Index {new_dev['index']})")
+        self._apply_device_change(f"entrée '{new_dev['name']}'",
+                                  input_id=new_dev['index'],
+                                  samplerate=int(new_dev['samplerate']))
 
-        current_idx = 0
-        current_id = self.cfg.device_name_or_index
-        
-        for i, dev in enumerate(devices):
-            if dev['index'] == current_id or dev['name'] == current_id:
-                current_idx = i
-                break
-        
-        new_idx = (current_idx + direction) % len(devices)
-        new_dev = devices[new_idx]
-        
-        was_running = self.audio.is_running()
-        if was_running:
-            self.stop_audio()
-            
-        self.cfg.device_name_or_index = new_dev['index']
-        
-        new_sr = int(new_dev['samplerate'])
-        if new_sr > 0 and new_sr != self.cfg.sample_rate:
-            print(f"[CONTROLLER] Auto-adjusting Sample Rate: {self.cfg.sample_rate} -> {new_sr} Hz")
-            self.cfg.sample_rate = new_sr
-            self.extractor = FeatureExtractor(self.cfg)
-        
-        self.state.reset_history()
-        print(f"[CONTROLLER] Switching input to: {new_dev['name']} (Index {new_dev['index']}, SR={new_sr})")
-        
-        if was_running:
-            self.start_audio()
-    
     def cycle_output_device(self, direction: int) -> None:
-        devices = self.state.get_output_devices()
-        if not devices:
+        new_dev = self._next_device(self.state.get_output_devices(),
+                                    self.cfg.output_device_name_or_index, direction)
+        if new_dev is None:
             return
+        print(f"[CONTROLLER] Switching OUTPUT to: {new_dev['name']} (Index {new_dev['index']})")
+        self._apply_device_change(f"sortie '{new_dev['name']}'",
+                                  output_id=new_dev['index'],
+                                  samplerate=int(new_dev['samplerate']))
 
+    def _next_device(self, devices: list[dict], current_id, direction: int) -> dict | None:
+        if not devices:
+            return None
         current_idx = 0
-        current_id = self.cfg.output_device_name_or_index
-        
         for i, dev in enumerate(devices):
             if dev['index'] == current_id or dev['name'] == current_id:
                 current_idx = i
                 break
-        
-        new_idx = (current_idx + direction) % len(devices)
-        new_dev = devices[new_idx]
-        
-        was_running = self.audio.is_running()
-        if was_running:
-            self.stop_audio()
-            
-        self.cfg.output_device_name_or_index = new_dev['index']
+        return devices[(current_idx + direction) % len(devices)]
 
-        new_sr = int(new_dev['samplerate'])
-        if new_sr > 0 and new_sr != self.cfg.sample_rate:
-            print(f"[CONTROLLER] Auto-adjusting Sample Rate for OUTPUT: {self.cfg.sample_rate} -> {new_sr} Hz")
-            self.cfg.sample_rate = new_sr
+    _KEEP = object()
+
+    def _apply_device_change(self, label: str, input_id=_KEEP, output_id=_KEEP,
+                             samplerate: int | None = None) -> None:
+        """Applique un changement de périphérique. Le flux est TOUJOURS redémarré ;
+        si l'ouverture échoue, retour au périphérique précédent + erreur affichée."""
+        prev = (self.cfg.device_name_or_index,
+                self.cfg.output_device_name_or_index,
+                self.cfg.sample_rate)
+
+        self.stop_audio()
+        if input_id is not AppController._KEEP:
+            self.cfg.device_name_or_index = input_id
+        if output_id is not AppController._KEEP:
+            self.cfg.output_device_name_or_index = output_id
+        if samplerate and samplerate > 0 and samplerate != self.cfg.sample_rate:
+            print(f"[CONTROLLER] Auto-adjusting Sample Rate: {self.cfg.sample_rate} -> {samplerate} Hz")
+            self.cfg.sample_rate = samplerate
             self.extractor = FeatureExtractor(self.cfg)
-
         self.state.reset_history()
-        print(f"[CONTROLLER] Switching OUTPUT to: {new_dev['name']} (Index {new_dev['index']})")
-        
-        if was_running:
+
+        self.start_audio()
+        if not self.audio.is_running():
+            cause = self.audio.last_error or "erreur inconnue"
+            (self.cfg.device_name_or_index,
+             self.cfg.output_device_name_or_index,
+             self.cfg.sample_rate) = prev
+            self.extractor = FeatureExtractor(self.cfg)
+            self.state.reset_history()
             self.start_audio()
+            self.state.set_error(f"Échec {label} ({cause}) — retour au périphérique précédent")
 
     def set_audio_gate(self, value: float) -> None:
         self.audio.set_gate_threshold(value)

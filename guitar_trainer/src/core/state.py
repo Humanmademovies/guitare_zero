@@ -72,6 +72,10 @@ class AppState:
             self._events.last_error = message
             if message:
                 print(f"[ERROR] {message}")
+
+    def get_error(self) -> str | None:
+        with self._lock:
+            return self._events.last_error
                 
     def set_input_devices(self, devices: list[dict]) -> None:
         with self._lock:
