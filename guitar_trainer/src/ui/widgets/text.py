@@ -1,5 +1,13 @@
 import pygame
 
+def ellipsize(text: str, font: pygame.font.Font, max_width: int) -> str:
+    """Tronque le texte avec '…' pour qu'il tienne dans max_width pixels."""
+    if font.size(text)[0] <= max_width:
+        return text
+    while text and font.size(text + "…")[0] > max_width:
+        text = text[:-1]
+    return text + "…"
+
 class TextLabel:
     def __init__(self, font: pygame.font.Font, pos: tuple[int, int], color=(255, 255, 255), align="topleft"):
         self.font = font

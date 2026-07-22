@@ -3,7 +3,7 @@ import math
 import time
 from .base import Screen
 from ..widgets.knob import Knob
-from ..widgets.text import TextLabel
+from ..widgets.text import TextLabel, ellipsize
 from ..widgets.status_light import StatusLight
 from ..widgets.vu_meter import VUMeter
 
@@ -351,11 +351,21 @@ class GameScreen(Screen):
                 out_name = d['name']
                 break
 
-        txt_in = self.font_small.render(f"In (L/R): {in_name}", True, (100, 100, 100))
-        txt_out = self.font_small.render(f"Out (U/D): {out_name}", True, (100, 100, 100))
-        
-        surface.blit(txt_out, (self.W - txt_out.get_width() - 20, self.H - 10))
-        surface.blit(txt_in, (self.W - txt_in.get_width() - 20, self.H - 30))
+        # Noms ALSA raccourcis + troncature pour rester dans le tiers droit
+        in_name = in_name.split(" (hw:")[0]
+        out_name = out_name.split(" (hw:")[0]
+        max_w = int(self.W * 0.30)
+        txt_in = self.font_small.render(
+            ellipsize(f"In (L/R): {in_name}", self.font_small, max_w), True, (100, 100, 100))
+        txt_out = self.font_small.render(
+            ellipsize(f"Out (U/D): {out_name}", self.font_small, max_w), True, (100, 100, 100))
+
+        # Empilées au-dessus du bord bas, espacées de la hauteur réelle de police
+        line_h = self.font_small.get_height()
+        y_out = self.H - line_h - 8
+        y_in = y_out - line_h - 4
+        surface.blit(txt_out, (self.W - txt_out.get_width() - 20, y_out))
+        surface.blit(txt_in, (self.W - txt_in.get_width() - 20, y_in))
 
     def _draw_game_over_overlay(self, surface):
         engine = self.controller.game_engine

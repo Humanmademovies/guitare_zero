@@ -6,7 +6,7 @@ from .base import Screen
 # On importe chaque widget depuis son fichier spécifique
 from ..widgets.spectrogram import SpectrogramWidget
 from ..widgets.oscilloscope import OscilloscopeWidget
-from ..widgets.text import TextLabel
+from ..widgets.text import TextLabel, ellipsize
 from ..widgets.vu_meter import VUMeter
 from ..widgets.status_light import StatusLight
 from ..widgets.knob import Knob
@@ -48,9 +48,15 @@ class TunerScreen(Screen):
         self.lbl_vu = TextLabel(self.font_small, (vu_x + vu_w//2, vu_y + vu_h + 10), align="center")
         self.lbl_vu.set_text("MIC")
         
+        # --- ZONE INFOS PÉRIPHÉRIQUES ---
+        # Colonne réservée à droite du panneau : les potards n'y entrent jamais,
+        # donc plus de chevauchement possible avec les libellés In/Out.
+        self.font_device = pygame.font.SysFont("monospace", int(H * 0.022))
+        self.device_zone_w = int(self.rect_ctrl.width * 0.28)
+
         # --- 5 POTARDS ---
         start_x = self.rect_ctrl.x + 120
-        width_available = self.rect_ctrl.width - 140
+        width_available = self.rect_ctrl.width - 140 - self.device_zone_w
         knob_y = self.rect_ctrl.centery
         knob_radius = int(self.rect_ctrl.height * 0.22)
         
@@ -245,15 +251,24 @@ class TunerScreen(Screen):
                 out_name = d['name']
                 break
 
-        txt_in = self.font_small.render(f"In (L/R): {in_name}", True, (150, 150, 150))
-        txt_out = self.font_small.render(f"Out (U/D): {out_name}", True, (150, 150, 150))
-        
-        bottom_margin = 10
-        right_margin = 20
-        
-        # Positionnement
-        surface.blit(txt_out, (self.rect_ctrl.right - txt_out.get_width() - right_margin, self.rect_ctrl.bottom - bottom_margin))
-        surface.blit(txt_in, (self.rect_ctrl.right - txt_in.get_width() - right_margin, self.rect_ctrl.bottom - bottom_margin - 30))
+        zone = pygame.Rect(self.rect_ctrl.right - self.device_zone_w, self.rect_ctrl.y,
+                           self.device_zone_w, self.rect_ctrl.height)
+        pygame.draw.line(surface, (40, 40, 50), (zone.left, zone.top + 10), (zone.left, zone.bottom - 10), 2)
+
+        margin = 16
+        max_w = zone.width - 2 * margin
+        # Les noms ALSA complets sont trop longs : suffixe (hw:x,y) retiré puis troncature
+        in_name = in_name.split(" (hw:")[0]
+        out_name = out_name.split(" (hw:")[0]
+        txt_in = self.font_device.render(
+            ellipsize(f"In (L/R): {in_name}", self.font_device, max_w), True, (150, 150, 150))
+        txt_out = self.font_device.render(
+            ellipsize(f"Out (U/D): {out_name}", self.font_device, max_w), True, (150, 150, 150))
+
+        line_h = self.font_device.get_height()
+        y0 = zone.centery - line_h - 4
+        surface.blit(txt_in, (zone.left + margin, y0))
+        surface.blit(txt_out, (zone.left + margin, y0 + line_h + 8))
         
     def _draw_quest_status(self, surface):
         W, H = self.cfg.window_size
