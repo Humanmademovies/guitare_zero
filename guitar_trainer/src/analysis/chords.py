@@ -1,4 +1,5 @@
 import numpy as np
+import aubio
 
 # Accordage standard : corde -> note MIDI à vide
 # 6=E2(40) 5=A2(45) 4=D3(50) 3=G3(55) 2=B3(59) 1=E4(64)
@@ -29,19 +30,39 @@ class ChordDetector:
 
     def __init__(self, sample_rate: int = 44100, window_size: int = 8192,
                  threshold_db: float = 15.0, cents_tol: float = 50.0,
-                 rms_threshold: float = 0.003):
+                 rms_threshold: float = 0.003, hop_size: int = 512):
         self.sample_rate = sample_rate
         self.window_size = window_size
         self.threshold_db = threshold_db
         self.cents_tol = cents_tol
         self.rms_threshold = rms_threshold
+        self.hop_size = hop_size
         self._ring = np.zeros(window_size, dtype=np.float32)
         self._filled = 0
         self._hann = np.hanning(window_size).astype(np.float32)
 
+        # Détection d'attaques (coups de médiator) : un accord TENU ne doit
+        # pas pouvoir valider plusieurs cibles — chaque validation consomme
+        # une attaque. HFC = référence pour les transitoires de pincement.
+        self.onset_count = 0
+        self._samples_pushed = 0
+        self._last_onset_sample = -1
+        self._onset_buf = np.zeros(0, dtype=np.float32)
+        self._make_onset()
+
+    def _make_onset(self) -> None:
+        self._onset = aubio.onset("hfc", 1024, self.hop_size, self.sample_rate)
+        self._onset.set_minioi_ms(150.0)   # fusionne le strum en UNE attaque
+        self._onset.set_silence(-50.0)
+
     def reset(self) -> None:
         self._ring[:] = 0.0
         self._filled = 0
+        self.onset_count = 0
+        self._samples_pushed = 0
+        self._last_onset_sample = -1
+        self._onset_buf = np.zeros(0, dtype=np.float32)
+        self._make_onset()
 
     def push(self, samples: np.ndarray) -> None:
         """Ajoute un bloc mono float32 à la fenêtre glissante."""
@@ -54,6 +75,23 @@ class ChordDetector:
             self._ring = np.roll(self._ring, -n)
             self._ring[-n:] = samples
         self._filled = min(self.window_size, self._filled + n)
+        self._samples_pushed += n
+
+        # Détection d'attaques, hop par hop (reliquat bufferisé)
+        buf = np.concatenate((self._onset_buf, samples.astype(np.float32, copy=False)))
+        n_hops = len(buf) // self.hop_size
+        for i in range(n_hops):
+            hop = np.ascontiguousarray(buf[i * self.hop_size:(i + 1) * self.hop_size])
+            if self._onset(hop)[0] > 0:
+                self.onset_count += 1
+                self._last_onset_sample = self._samples_pushed
+        self._onset_buf = buf[n_hops * self.hop_size:]
+
+    def seconds_since_onset(self) -> float:
+        """Âge de la dernière attaque détectée (1e9 si aucune)."""
+        if self._last_onset_sample < 0:
+            return 1e9
+        return (self._samples_pushed - self._last_onset_sample) / self.sample_rate
 
     def detect(self, positions: list[tuple[int, int]]) -> dict:
         """positions : liste de (corde, case) attendues.

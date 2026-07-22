@@ -61,6 +61,7 @@ class GameEngine:
         self.chord_detector = None
         self.target_chord = None
         self._chord_streak = 0
+        self._used_onset_count = 0
         
     def load_quest(self, campaign_id, quest_data):
         self.quest_mode = True
@@ -73,6 +74,7 @@ class GameEngine:
         self.chord_detector = ChordDetector(sample_rate=self.cfg.sample_rate,
                                             rms_threshold=self.cfg.rms_threshold)
         self._chord_streak = 0
+        self._used_onset_count = 0
 
         self.start_game()
         self.stats.lives = quest_data["params"].get("max_lives", 0)
@@ -177,16 +179,24 @@ class GameEngine:
                 self.target_position = positions[0]
 
                 if features is not None and self.chord_detector is not None:
-                    r = self.chord_detector.detect(positions)
+                    det = self.chord_detector
+                    r = det.detect(positions)
                     self._chord_streak = self._chord_streak + 1 if r["present"] else 0
+                    # Anti-triche : un accord tenu ne valide pas la cible
+                    # suivante — il faut une NOUVELLE attaque (non consommée
+                    # par une validation précédente, et récente)
+                    max_age = (2.0 * tol_t) * (60.0 / bpm) + 0.35
+                    fresh_onset = (det.onset_count > self._used_onset_count
+                                   and det.seconds_since_onset() <= max_age)
                     # 2 détections consécutives (~30 ms) : anti-transitoire
-                    if self._chord_streak >= 2:
+                    if self._chord_streak >= 2 and fresh_onset:
                         timing_err = self.song_time_beats - first_beat
                         if abs(timing_err) <= tol_t:
                             mean_cents = sum(abs(x["cents"]) for x in r["notes"]) / len(r["notes"])
                             for n in group:
                                 n["status"] = "hit"
                             self._chord_streak = 0
+                            self._used_onset_count = det.onset_count
                             self._handle_success(timing_err=timing_err, pitch_err=mean_cents)
 
         self.active_notes = [n for n in self.active_notes if self.song_time_beats < n["beat"] + 1.0]
