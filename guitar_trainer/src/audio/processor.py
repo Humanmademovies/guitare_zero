@@ -32,9 +32,14 @@ class AudioProcessor:
                                  self._reverb, self._gain])
 
     def process(self, input_audio: np.ndarray) -> np.ndarray:
-        """Entrée (1, N) float32 contigu, sortie même forme (état conservé entre blocs)."""
+        """Entrée (1, N) float32 contigu, sortie même forme (état conservé entre blocs).
+
+        Sortie bornée par un écrêtage doux tanh (saturation progressive façon
+        étage analogique) : transparent sous ~0,3, compression musicale au-delà
+        — au lieu du clip dur qui "pixélise" attaques et accords.
+        """
         out = self.board(input_audio, self.sample_rate, reset=False)
-        return np.clip(out, -1.0, 1.0)
+        return np.tanh(out)
 
     def set_gate_threshold(self, value: float) -> None:
         # Héritage de l'ancien SoftGate : potard x0.1 = seuil linéaire

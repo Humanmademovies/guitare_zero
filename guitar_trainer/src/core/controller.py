@@ -15,8 +15,9 @@ class AppController:
         self.extractor = FeatureExtractor(cfg)
         self.game_engine = GameEngine(cfg, controller=self)
         self.studio_engine = StudioEngine(cfg)
-        self.campaign_manager = CampaignManager()	
+        self.campaign_manager = CampaignManager()
         self.active_mode = "game" # 'game' ou 'studio'
+        self._meter_timer = 0.0
 	
     def start_audio(self) -> None:
         ok = self.audio.start()
@@ -57,6 +58,15 @@ class AppController:
         elif self.active_mode == "studio":
             if last_features is not None:
                 self.studio_engine.update(last_features, dt)
+
+        # Relevé du métreur audio (hors callback), affiché seulement si anomalie
+        self._meter_timer += dt
+        if self._meter_timer >= 1.0:
+            self._meter_timer = 0.0
+            m = self.audio.poll_meter()
+            if m["clipped"] > 0 or m["xruns"] > 0:
+                print(f"[AUDIO METER] in_peak={m['in_peak']:.3f} out_peak={m['out_peak']:.3f} "
+                      f"clipped={m['clipped']}/s xruns={m['xruns']}/s")
     
     def cycle_input_device(self, direction: int) -> None:
         new_dev = self._next_device(self.state.get_input_devices(),

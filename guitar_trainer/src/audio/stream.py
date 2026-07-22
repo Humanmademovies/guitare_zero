@@ -21,6 +21,12 @@ class AudioStream:
         self.last_error: str | None = None
         self._input_gain = float(cfg.input_gain)
         self._xruns = 0
+        self._xruns_reported = 0
+        # Instrumentation : crêtes/écrêtage accumulés dans le callback,
+        # lus et remis à zéro par le thread principal via poll_meter()
+        self._peak_in = 0.0
+        self._peak_out = 0.0
+        self._clip_count = 0
 
     def start(self) -> bool:
         if self.running:
@@ -87,11 +93,10 @@ class AudioStream:
         return self._last_rms
 
     def _callback(self, indata, outdata, frames, time_info, status):
+        # JAMAIS de print ici : toute I/O console peut bloquer le callback
+        # au-delà de sa deadline et provoquer elle-même des dropouts.
         if status:
-            # Comptage des xruns (log limité pour ne pas saturer le callback)
             self._xruns += 1
-            if self._xruns == 1 or self._xruns % 100 == 0:
-                print(f"[AUDIO] Stream status: {status} (total: {self._xruns})")
 
         # 0. Gain d'entrée logiciel (guitare passive -> signal faible)
         boosted = indata * self._input_gain
@@ -134,6 +139,25 @@ class AudioStream:
                 outdata[:] = np.clip(mix, -1.0, 1.0)
         else:
             outdata[:] = np.clip(mix, -1.0, 1.0)
+
+        # --- Instrumentation : accumulation seule, affichage hors callback ---
+        self._peak_in = max(self._peak_in, float(np.max(np.abs(samples))))
+        self._peak_out = max(self._peak_out, float(np.max(np.abs(outdata))))
+        self._clip_count += int(np.sum(np.abs(outdata) >= 0.999))
+
+    def poll_meter(self) -> dict:
+        """Relève et remet à zéro les compteurs (appelé ~1x/s par le thread principal)."""
+        m = {
+            "in_peak": self._peak_in,
+            "out_peak": self._peak_out,
+            "clipped": self._clip_count,
+            "xruns": self._xruns - self._xruns_reported,
+        }
+        self._xruns_reported = self._xruns
+        self._peak_in = 0.0
+        self._peak_out = 0.0
+        self._clip_count = 0
+        return m
 
     def _compute_rms(self, samples: np.ndarray) -> float:
         return float(np.sqrt(np.mean(samples**2)))
