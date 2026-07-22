@@ -14,14 +14,14 @@ class AppConfig:
     output_device_name_or_index: str | int | None = None 
     
     # Effets / Traitement
-    gate_threshold: float = 0.15
+    gate_threshold: float = 0.05
     tone: float = 0.12  # Valeur par défaut du Tone
     
     # --- Analyse (Pitch & Features) ---
     fmin: float = 40.0
     fmax: float = 2000.0
     confidence_threshold: float = 0.2
-    rms_threshold: float = 0.01
+    rms_threshold: float = 0.003
     flatness_threshold: float = 0.15
     
     # --- Stabilité ---
@@ -30,7 +30,7 @@ class AppConfig:
     
     # --- UI ---
     window_title: str = "Guitar Trainer MVP"
-    window_size: tuple[int, int] = (1600, 1200)
+    window_size: tuple[int, int] = (1280, 720)
     fps: int = 60
     font_size_main: int = 48
     font_size_debug: int = 24
