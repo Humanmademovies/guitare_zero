@@ -25,15 +25,15 @@ Plan établi à la reprise du 2026-07-22, gradé **U** = urgence (1→5) et **S*
 | Métrologie hors-callback (le print dans le callback créait ses propres dropouts) | `a8aa8a0` |
 | Routage PipeWire exposé : entrée+sortie « pipewire » = enceintes du bureau, 11,6 ms/côté | `a8aa8a0` |
 | Calibration d'entrée documentée (volume guitare bas + GAIN logiciel — l'ADC du câble écrête à la source) | README |
+| **Point 12 tranché : on reste sur Pygame.** L'UI est devenue résolution-indépendante, le DSP est en C++, et la qualité ampli (accès périphérique natif, PipeWire, 11,6 ms, gate anti-souffle) est impossible en navigateur ; la portabilité web était un faux besoin (on joue là où la guitare est branchée) | décision 2026-07-22 |
+| Knobs synchronisés avec la config (drive/tone/volume persistés — le tone restait bloqué à 0,12 = 1,8 kHz à chaque démarrage !) + paramètres d'effets lissés à 10 Hz (fini le TONE qui « découpe » pendant le drag) | `713beb5` |
 
 ## Restant
 
 | # | Action | U | S | Notes |
 |---|--------|---|---|-------|
-| 15 | Sync knobs ↔ config au démarrage + lissage des paramètres | 3 | 3 | Au lancement, TONE affiche 0,8 mais le filtre est à 0,12 (idem VOL) ; et chaque mouvement de potard re-prépare le filtre pedalboard → clics violents pendant le drag (throttler ~10 Hz ou appliquer au relâchement) |
 | 16 | IR de cabinet (`pedalboard.Convolution`) | 2 | 3 | Le signal est propre désormais : un IR de baffle (WAV libre, ~50 Ko) donnerait le rendu « ampli micro-capté » ; potard de mix éventuel |
 | 11 | Phase B d'Archi.md : `PreviewPlayer` + bouton « Écouter la quête » | 2 | 2 | Les 60 samples de `data/samples/` existent (Phase A faite), rien ne les exploite |
-| 12 | Trancher : consolider Pygame vs web app auto-hébergée (nerdodrome) | 2 | 2 | Electron écarté (aucun gain audio vs navigateur) ; décider avant d'investir dans le point 11 |
 | 13 | Accords et mélodies (nouveaux types de quêtes) | 2 | 1 | Annoncés dans l'intro d'Archi.md, inexistants ; une seule campagne (`debutant.json`) |
 | 14 | Pipeline Custom Tracks (Demucs + Basic Pitch + Mapper) | 1 | 1 | Plan détaillé en fin d'Archi.md ; outil externe hors-ligne, indépendant de la techno du jeu |
 
