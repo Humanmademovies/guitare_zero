@@ -7,8 +7,11 @@ import math
 class PitchTracker:
     def __init__(self, cfg: AppConfig):
         self.cfg = cfg
-        # Buffer size (Fenêtre d'analyse)
-        self.buf_size = cfg.block_size * 2
+        # Fenêtre d'analyse DÉCOUPLÉE de la taille de bloc audio : yin a besoin
+        # d'au moins ~2 périodes du Mi grave (82 Hz ~ 535 échantillons) dans sa
+        # fenêtre. 2048 fixe = même qualité de détection quel que soit block_size ;
+        # aubio gère lui-même le buffering quand hop_size < buf_size.
+        self.buf_size = 2048
         self.hop_size = cfg.block_size
         
         # 1. CHANGEMENT ALGO : On passe de "yinfft" (Spectral) à "yin" (Temporel)

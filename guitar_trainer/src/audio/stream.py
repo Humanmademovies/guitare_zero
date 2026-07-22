@@ -51,6 +51,7 @@ class AudioStream:
                 samplerate=self.cfg.sample_rate,
                 blocksize=self.cfg.block_size,
                 dtype='float32',
+                latency='low',
                 callback=self._callback
             )
             self.stream.start()

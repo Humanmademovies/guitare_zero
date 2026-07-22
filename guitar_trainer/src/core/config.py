@@ -10,7 +10,7 @@ CONFIG_PATH = "config.json"
 class AppConfig:
     # --- Audio ---
     sample_rate: int = 44100
-    block_size: int = 1024
+    block_size: int = 512  # compromis latence/stabilité : 256 = xruns (GIL disputé avec l'UI 60 FPS)
     channels: int = 1
 
     # Entrée (Micro / Câble Guitare) — index, ou nom partiel (stable entre reboots)
