@@ -59,6 +59,9 @@ index ALSA changent d'un reboot à l'autre. Supprimer le fichier restaure les d�
   seuil courant).
 - **Son de sortie très faible** : le volume ALSA de la carte USB retombe parfois à ~49 %
   (−30 dB). Le remonter : `amixer -c 1 sset PCM 100%` (pérenniser : `sudo alsactl store`).
+- **Craquements / décrochages** : des lignes `[AUDIO] Stream status: ...` en console
+  comptent les xruns. Les effets de monitoring tournent en C++ (pedalboard), leur coût
+  est négligeable — chercher plutôt côté périphérique ou charge machine.
 
 ## Documentation
 

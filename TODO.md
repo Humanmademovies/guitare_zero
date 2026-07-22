@@ -18,12 +18,13 @@ Plan établi à la reprise du 2026-07-22, gradé **U** = urgence (1→5) et **S*
 | Gain d'entrée logiciel (potard GAIN 1×–8×, défaut 2×, appliqué avant analyse et monitoring) | `62a2faa` |
 | Config persistante `config.json` (fermeture, sortie accordeur, changement de périphérique) | `62a2faa` |
 | Périphériques mémorisés par nom (les index ALSA changent au reboot) | `62a2faa` |
+| DSP pedalboard (C++/JUCE) : ~0,03 ms/bloc contre ~8 ms en Python pur (×266) + log des xruns | `d2277d9` |
 
 ## Restant
 
 | # | Action | U | S | Notes |
 |---|--------|---|---|-------|
-| 10 | Remplacer le DSP pur Python de `processor.py` | 3 | 3 | Boucles par échantillon dans le callback audio (gate/tone/réverbe) ; pedalboard est dans `environment.yml` mais n'est plus utilisé |
+| 10b | Bloc 256 + fenêtre d'analyse découplée (latence ~6-12 ms) | 3 | 3 | Rendu possible par pedalboard ; attention : la fenêtre yin doit rester à 2048 indépendamment du bloc, sinon les cordes graves (E2/A2) ne sont plus détectées |
 | 11 | Phase B d'Archi.md : `PreviewPlayer` + bouton « Écouter la quête » | 2 | 2 | Les 60 samples de `data/samples/` existent (Phase A faite), rien ne les exploite |
 | 12 | Trancher : consolider Pygame vs web app auto-hébergée (nerdodrome) | 2 | 2 | Electron écarté (aucun gain audio vs navigateur) ; décider avant d'investir dans le point 11 |
 | 13 | Accords et mélodies (nouveaux types de quêtes) | 2 | 1 | Annoncés dans l'intro d'Archi.md, inexistants ; une seule campagne (`debutant.json`) |

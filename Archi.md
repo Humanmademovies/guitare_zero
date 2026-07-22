@@ -4,7 +4,7 @@
 > - **Mode Studio (Phase A) : ✅ fait** — 60 samples `corde_case.wav` enregistrés dans `guitar_trainer/data/samples/`.
 > - **Moteur de rendu / `PreviewPlayer` (Phase B) : ❌ à faire** — rien n'exploite encore les samples (pas de bouton « Écouter la quête »).
 > - **Custom Tracks / Transcription (Suno) : ❌ non commencé.**
-> - Écarts notables entre cette spec et le code : les effets sont un DSP maison dans `audio/processor.py` (pedalboard n'est plus utilisé), l'UI dessine sur un canvas logique 1600×1200 mis à l'échelle dans une fenêtre redimensionnable (`ui/pygame_app.py`), et `AppEvents.last_error` alimente un bandeau d'erreur affiché sur tous les écrans.
+> - Écarts notables entre cette spec et le code : les effets tournent en C++ via pedalboard dans `audio/processor.py` (l'ancien DSP maison pur Python est dans l'historique git, remplacé le 2026-07-22), l'UI dessine sur un canvas logique 1600×1200 mis à l'échelle dans une fenêtre redimensionnable (`ui/pygame_app.py`), et `AppEvents.last_error` alimente un bandeau d'erreur affiché sur tous les écrans.
 >
 > Utilisation : voir `README.md`. Plan d'action courant : voir `TODO.md`.
 
