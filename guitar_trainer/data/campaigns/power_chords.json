@@ -1,0 +1,766 @@
+{
+ "id": "power_chords",
+ "name": "Power Chords",
+ "quests": [
+  {
+   "id": "pc1",
+   "name": "Découverte : E5",
+   "type": "rhythm",
+   "next_quest": "pc2",
+   "params": {
+    "tempo": 50,
+    "tolerance_timing": 0.45,
+    "tolerance_pitch": 25,
+    "max_lives": 0,
+    "requirements": {
+     "min_percent": 50
+    },
+    "sequence": [
+     {
+      "beat": 1.0,
+      "string": 6,
+      "fret": 0,
+      "label": "E5"
+     },
+     {
+      "beat": 1.0,
+      "string": 5,
+      "fret": 2,
+      "label": "E5"
+     },
+     {
+      "beat": 3.0,
+      "string": 6,
+      "fret": 0,
+      "label": "E5"
+     },
+     {
+      "beat": 3.0,
+      "string": 5,
+      "fret": 2,
+      "label": "E5"
+     },
+     {
+      "beat": 5.0,
+      "string": 6,
+      "fret": 0,
+      "label": "E5"
+     },
+     {
+      "beat": 5.0,
+      "string": 5,
+      "fret": 2,
+      "label": "E5"
+     },
+     {
+      "beat": 7.0,
+      "string": 6,
+      "fret": 0,
+      "label": "E5"
+     },
+     {
+      "beat": 7.0,
+      "string": 5,
+      "fret": 2,
+      "label": "E5"
+     }
+    ]
+   }
+  },
+  {
+   "id": "pc2",
+   "name": "Découverte : A5",
+   "type": "rhythm",
+   "next_quest": "pc3",
+   "params": {
+    "tempo": 50,
+    "tolerance_timing": 0.45,
+    "tolerance_pitch": 25,
+    "max_lives": 0,
+    "requirements": {
+     "min_percent": 50
+    },
+    "sequence": [
+     {
+      "beat": 1.0,
+      "string": 5,
+      "fret": 0,
+      "label": "A5"
+     },
+     {
+      "beat": 1.0,
+      "string": 4,
+      "fret": 2,
+      "label": "A5"
+     },
+     {
+      "beat": 3.0,
+      "string": 5,
+      "fret": 0,
+      "label": "A5"
+     },
+     {
+      "beat": 3.0,
+      "string": 4,
+      "fret": 2,
+      "label": "A5"
+     },
+     {
+      "beat": 5.0,
+      "string": 5,
+      "fret": 0,
+      "label": "A5"
+     },
+     {
+      "beat": 5.0,
+      "string": 4,
+      "fret": 2,
+      "label": "A5"
+     },
+     {
+      "beat": 7.0,
+      "string": 5,
+      "fret": 0,
+      "label": "A5"
+     },
+     {
+      "beat": 7.0,
+      "string": 4,
+      "fret": 2,
+      "label": "A5"
+     }
+    ]
+   }
+  },
+  {
+   "id": "pc3",
+   "name": "Changement : E5 - A5",
+   "type": "rhythm",
+   "next_quest": "pc4",
+   "params": {
+    "tempo": 55,
+    "tolerance_timing": 0.45,
+    "tolerance_pitch": 25,
+    "max_lives": 0,
+    "requirements": {
+     "min_percent": 50
+    },
+    "sequence": [
+     {
+      "beat": 1.0,
+      "string": 6,
+      "fret": 0,
+      "label": "E5"
+     },
+     {
+      "beat": 1.0,
+      "string": 5,
+      "fret": 2,
+      "label": "E5"
+     },
+     {
+      "beat": 3.0,
+      "string": 5,
+      "fret": 0,
+      "label": "A5"
+     },
+     {
+      "beat": 3.0,
+      "string": 4,
+      "fret": 2,
+      "label": "A5"
+     },
+     {
+      "beat": 5.0,
+      "string": 6,
+      "fret": 0,
+      "label": "E5"
+     },
+     {
+      "beat": 5.0,
+      "string": 5,
+      "fret": 2,
+      "label": "E5"
+     },
+     {
+      "beat": 7.0,
+      "string": 5,
+      "fret": 0,
+      "label": "A5"
+     },
+     {
+      "beat": 7.0,
+      "string": 4,
+      "fret": 2,
+      "label": "A5"
+     },
+     {
+      "beat": 9.0,
+      "string": 6,
+      "fret": 0,
+      "label": "E5"
+     },
+     {
+      "beat": 9.0,
+      "string": 5,
+      "fret": 2,
+      "label": "E5"
+     },
+     {
+      "beat": 11.0,
+      "string": 5,
+      "fret": 0,
+      "label": "A5"
+     },
+     {
+      "beat": 11.0,
+      "string": 4,
+      "fret": 2,
+      "label": "A5"
+     }
+    ]
+   }
+  },
+  {
+   "id": "pc4",
+   "name": "Forme mobile : G5 et F5",
+   "type": "rhythm",
+   "next_quest": "pc5",
+   "params": {
+    "tempo": 55,
+    "tolerance_timing": 0.45,
+    "tolerance_pitch": 25,
+    "max_lives": 0,
+    "requirements": {
+     "min_percent": 50
+    },
+    "sequence": [
+     {
+      "beat": 1.0,
+      "string": 6,
+      "fret": 3,
+      "label": "G5"
+     },
+     {
+      "beat": 1.0,
+      "string": 5,
+      "fret": 5,
+      "label": "G5"
+     },
+     {
+      "beat": 3.0,
+      "string": 6,
+      "fret": 3,
+      "label": "G5"
+     },
+     {
+      "beat": 3.0,
+      "string": 5,
+      "fret": 5,
+      "label": "G5"
+     },
+     {
+      "beat": 5.0,
+      "string": 6,
+      "fret": 1,
+      "label": "F5"
+     },
+     {
+      "beat": 5.0,
+      "string": 5,
+      "fret": 3,
+      "label": "F5"
+     },
+     {
+      "beat": 7.0,
+      "string": 6,
+      "fret": 1,
+      "label": "F5"
+     },
+     {
+      "beat": 7.0,
+      "string": 5,
+      "fret": 3,
+      "label": "F5"
+     },
+     {
+      "beat": 9.0,
+      "string": 6,
+      "fret": 3,
+      "label": "G5"
+     },
+     {
+      "beat": 9.0,
+      "string": 5,
+      "fret": 5,
+      "label": "G5"
+     }
+    ]
+   }
+  },
+  {
+   "id": "pc5",
+   "name": "Cordes du milieu : C5 et D5",
+   "type": "rhythm",
+   "next_quest": "pc6",
+   "params": {
+    "tempo": 60,
+    "tolerance_timing": 0.45,
+    "tolerance_pitch": 25,
+    "max_lives": 0,
+    "requirements": {
+     "min_percent": 50
+    },
+    "sequence": [
+     {
+      "beat": 1.0,
+      "string": 5,
+      "fret": 3,
+      "label": "C5"
+     },
+     {
+      "beat": 1.0,
+      "string": 4,
+      "fret": 5,
+      "label": "C5"
+     },
+     {
+      "beat": 3.0,
+      "string": 5,
+      "fret": 3,
+      "label": "C5"
+     },
+     {
+      "beat": 3.0,
+      "string": 4,
+      "fret": 5,
+      "label": "C5"
+     },
+     {
+      "beat": 5.0,
+      "string": 5,
+      "fret": 5,
+      "label": "D5"
+     },
+     {
+      "beat": 5.0,
+      "string": 4,
+      "fret": 7,
+      "label": "D5"
+     },
+     {
+      "beat": 7.0,
+      "string": 5,
+      "fret": 5,
+      "label": "D5"
+     },
+     {
+      "beat": 7.0,
+      "string": 4,
+      "fret": 7,
+      "label": "D5"
+     },
+     {
+      "beat": 9.0,
+      "string": 5,
+      "fret": 3,
+      "label": "C5"
+     },
+     {
+      "beat": 9.0,
+      "string": 4,
+      "fret": 5,
+      "label": "C5"
+     },
+     {
+      "beat": 11.0,
+      "string": 5,
+      "fret": 5,
+      "label": "D5"
+     },
+     {
+      "beat": 11.0,
+      "string": 4,
+      "fret": 7,
+      "label": "D5"
+     }
+    ]
+   }
+  },
+  {
+   "id": "pc6",
+   "name": "Le riff",
+   "type": "rhythm",
+   "next_quest": "pc7",
+   "params": {
+    "tempo": 70,
+    "tolerance_timing": 0.4,
+    "tolerance_pitch": 25,
+    "max_lives": 0,
+    "requirements": {
+     "min_percent": 50
+    },
+    "sequence": [
+     {
+      "beat": 1.0,
+      "string": 6,
+      "fret": 0,
+      "label": "E5"
+     },
+     {
+      "beat": 1.0,
+      "string": 5,
+      "fret": 2,
+      "label": "E5"
+     },
+     {
+      "beat": 2.0,
+      "string": 6,
+      "fret": 0,
+      "label": "E5"
+     },
+     {
+      "beat": 2.0,
+      "string": 5,
+      "fret": 2,
+      "label": "E5"
+     },
+     {
+      "beat": 3.0,
+      "string": 5,
+      "fret": 0,
+      "label": "A5"
+     },
+     {
+      "beat": 3.0,
+      "string": 4,
+      "fret": 2,
+      "label": "A5"
+     },
+     {
+      "beat": 4.0,
+      "string": 5,
+      "fret": 0,
+      "label": "A5"
+     },
+     {
+      "beat": 4.0,
+      "string": 4,
+      "fret": 2,
+      "label": "A5"
+     },
+     {
+      "beat": 5.0,
+      "string": 6,
+      "fret": 0,
+      "label": "E5"
+     },
+     {
+      "beat": 5.0,
+      "string": 5,
+      "fret": 2,
+      "label": "E5"
+     },
+     {
+      "beat": 6.0,
+      "string": 6,
+      "fret": 0,
+      "label": "E5"
+     },
+     {
+      "beat": 6.0,
+      "string": 5,
+      "fret": 2,
+      "label": "E5"
+     },
+     {
+      "beat": 7.0,
+      "string": 6,
+      "fret": 3,
+      "label": "G5"
+     },
+     {
+      "beat": 7.0,
+      "string": 5,
+      "fret": 5,
+      "label": "G5"
+     },
+     {
+      "beat": 8.0,
+      "string": 5,
+      "fret": 0,
+      "label": "A5"
+     },
+     {
+      "beat": 8.0,
+      "string": 4,
+      "fret": 2,
+      "label": "A5"
+     }
+    ]
+   }
+  },
+  {
+   "id": "pc7",
+   "name": "Cadence I-IV-V",
+   "type": "rhythm",
+   "next_quest": "pc8",
+   "params": {
+    "tempo": 65,
+    "tolerance_timing": 0.45,
+    "tolerance_pitch": 25,
+    "max_lives": 0,
+    "requirements": {
+     "min_percent": 50
+    },
+    "sequence": [
+     {
+      "beat": 1.0,
+      "string": 6,
+      "fret": 3,
+      "label": "G5"
+     },
+     {
+      "beat": 1.0,
+      "string": 5,
+      "fret": 5,
+      "label": "G5"
+     },
+     {
+      "beat": 3.0,
+      "string": 5,
+      "fret": 3,
+      "label": "C5"
+     },
+     {
+      "beat": 3.0,
+      "string": 4,
+      "fret": 5,
+      "label": "C5"
+     },
+     {
+      "beat": 5.0,
+      "string": 5,
+      "fret": 5,
+      "label": "D5"
+     },
+     {
+      "beat": 5.0,
+      "string": 4,
+      "fret": 7,
+      "label": "D5"
+     },
+     {
+      "beat": 7.0,
+      "string": 6,
+      "fret": 3,
+      "label": "G5"
+     },
+     {
+      "beat": 7.0,
+      "string": 5,
+      "fret": 5,
+      "label": "G5"
+     },
+     {
+      "beat": 9.0,
+      "string": 5,
+      "fret": 3,
+      "label": "C5"
+     },
+     {
+      "beat": 9.0,
+      "string": 4,
+      "fret": 5,
+      "label": "C5"
+     },
+     {
+      "beat": 11.0,
+      "string": 5,
+      "fret": 5,
+      "label": "D5"
+     },
+     {
+      "beat": 11.0,
+      "string": 4,
+      "fret": 7,
+      "label": "D5"
+     },
+     {
+      "beat": 13.0,
+      "string": 6,
+      "fret": 3,
+      "label": "G5"
+     },
+     {
+      "beat": 13.0,
+      "string": 5,
+      "fret": 5,
+      "label": "G5"
+     }
+    ]
+   }
+  },
+  {
+   "id": "pc8",
+   "name": "Épreuve finale",
+   "type": "rhythm",
+   "next_quest": null,
+   "params": {
+    "tempo": 75,
+    "tolerance_timing": 0.4,
+    "tolerance_pitch": 25,
+    "max_lives": 3,
+    "requirements": {
+     "min_percent": 60
+    },
+    "sequence": [
+     {
+      "beat": 1.0,
+      "string": 6,
+      "fret": 0,
+      "label": "E5"
+     },
+     {
+      "beat": 1.0,
+      "string": 5,
+      "fret": 2,
+      "label": "E5"
+     },
+     {
+      "beat": 3.0,
+      "string": 5,
+      "fret": 0,
+      "label": "A5"
+     },
+     {
+      "beat": 3.0,
+      "string": 4,
+      "fret": 2,
+      "label": "A5"
+     },
+     {
+      "beat": 5.0,
+      "string": 6,
+      "fret": 3,
+      "label": "G5"
+     },
+     {
+      "beat": 5.0,
+      "string": 5,
+      "fret": 5,
+      "label": "G5"
+     },
+     {
+      "beat": 7.0,
+      "string": 5,
+      "fret": 3,
+      "label": "C5"
+     },
+     {
+      "beat": 7.0,
+      "string": 4,
+      "fret": 5,
+      "label": "C5"
+     },
+     {
+      "beat": 9.0,
+      "string": 5,
+      "fret": 5,
+      "label": "D5"
+     },
+     {
+      "beat": 9.0,
+      "string": 4,
+      "fret": 7,
+      "label": "D5"
+     },
+     {
+      "beat": 11.0,
+      "string": 5,
+      "fret": 3,
+      "label": "C5"
+     },
+     {
+      "beat": 11.0,
+      "string": 4,
+      "fret": 5,
+      "label": "C5"
+     },
+     {
+      "beat": 13.0,
+      "string": 5,
+      "fret": 0,
+      "label": "A5"
+     },
+     {
+      "beat": 13.0,
+      "string": 4,
+      "fret": 2,
+      "label": "A5"
+     },
+     {
+      "beat": 15.0,
+      "string": 6,
+      "fret": 0,
+      "label": "E5"
+     },
+     {
+      "beat": 15.0,
+      "string": 5,
+      "fret": 2,
+      "label": "E5"
+     },
+     {
+      "beat": 17.0,
+      "string": 6,
+      "fret": 3,
+      "label": "G5"
+     },
+     {
+      "beat": 17.0,
+      "string": 5,
+      "fret": 5,
+      "label": "G5"
+     },
+     {
+      "beat": 19.0,
+      "string": 5,
+      "fret": 5,
+      "label": "D5"
+     },
+     {
+      "beat": 19.0,
+      "string": 4,
+      "fret": 7,
+      "label": "D5"
+     },
+     {
+      "beat": 21.0,
+      "string": 6,
+      "fret": 3,
+      "label": "G5"
+     },
+     {
+      "beat": 21.0,
+      "string": 5,
+      "fret": 5,
+      "label": "G5"
+     },
+     {
+      "beat": 23.0,
+      "string": 6,
+      "fret": 0,
+      "label": "E5"
+     },
+     {
+      "beat": 23.0,
+      "string": 5,
+      "fret": 2,
+      "label": "E5"
+     }
+    ]
+   }
+  }
+ ]
+}

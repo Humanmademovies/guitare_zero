@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from .guitar_map import GUITAR_MAP
 from .settings import GameSettings
 from ..core.highscore import HighScoreManager
+from ..analysis.chords import ChordDetector
 
 # --- ÉTATS DU JEU ---
 STATE_IDLE = "IDLE"           
@@ -27,6 +28,7 @@ class GameStats:
 class GameEngine:
     def __init__(self, cfg, controller=None):
         self.controller = controller
+        self.cfg = cfg
         self.state = STATE_IDLE
         self.settings = GameSettings()
         self.stats = GameStats()
@@ -53,6 +55,12 @@ class GameEngine:
 
         # Historique pour le Radar (x=timing, y=pitch, time=ticks)
         self.hit_history = []
+
+        # Accords : les notes d'un même beat forment un groupe validé
+        # par le ChordDetector (les notes seules gardent yin)
+        self.chord_detector = None
+        self.target_chord = None
+        self._chord_streak = 0
         
     def load_quest(self, campaign_id, quest_data):
         self.quest_mode = True
@@ -61,12 +69,18 @@ class GameEngine:
         self.active_notes = []
         self.next_note_idx = 0
         self.song_time_beats = -4.0
-        
+
+        self.chord_detector = ChordDetector(sample_rate=self.cfg.sample_rate,
+                                            rms_threshold=self.cfg.rms_threshold)
+        self._chord_streak = 0
+
         self.start_game()
         self.stats.lives = quest_data["params"].get("max_lives", 0)
-        
-        count = len(quest_data["params"].get("sequence", []))
-        self.max_quest_score = (count * 300) + (self.stats.lives * 500)
+
+        # Les notes d'un même beat forment UN accord = une seule unité de score
+        seq = quest_data["params"].get("sequence", [])
+        group_count = len({float(n["beat"]) for n in seq})
+        self.max_quest_score = (group_count * 300) + (self.stats.lives * 500)
         
         self.hit_history = [] # Reset du radar à chaque début de quête
         self.initialized = True
@@ -80,6 +94,7 @@ class GameEngine:
         self.state = STATE_LISTEN if self.quest_mode else STATE_PICK
         self.stats.multiplier = self.settings.get_multiplier()
         self.target_position = None
+        self.target_chord = None
         print(f"[GAME] START! Multiplier: x{self.stats.multiplier}")
 
     def update(self, features, dt: float):
@@ -94,6 +109,13 @@ class GameEngine:
             self._update_quest_mode(features, dt)
         else:
             self._update_arcade_mode(features, dt)
+
+    def push_chord_audio(self, samples) -> None:
+        """Alimente la fenêtre glissante du détecteur d'accords.
+        Appelé par le controller pour CHAQUE bloc audio (le moteur ne voit
+        qu'un bloc par frame : une fenêtre à trous fausserait la FFT)."""
+        if self.chord_detector is not None and samples is not None:
+            self.chord_detector.push(samples)
 
     def _update_quest_mode(self, features, dt: float):
         bpm = self.quest_data["params"]["tempo"]
@@ -114,27 +136,58 @@ class GameEngine:
                 self.active_notes.append({
                     "string": n["string"], "fret": n["fret"],
                     "note": note_name, "beat": n["beat"],
+                    "label": n.get("label"),
                     "status": "pending"
                 })
                 self.next_note_idx += 1
             else:
                 break
 
+        # Un accord raté = UNE vie (pas une par note du groupe)
+        missed_beats = set()
         for n in self.active_notes:
             if n["status"] == "pending" and self.song_time_beats > n["beat"] + tol_t:
                 n["status"] = "missed"
-                self._handle_miss()
+                missed_beats.add(n["beat"])
+        for _ in missed_beats:
+            self._handle_miss()
 
-        target = next((n for n in self.active_notes if n["status"] == "pending"), None)
-        if target:
-            self.target_note = target["note"]
-            self.target_position = (target["string"], target["fret"])
+        pending = [n for n in self.active_notes if n["status"] == "pending"]
+        if pending:
+            first_beat = min(n["beat"] for n in pending)
+            group = [n for n in pending if n["beat"] == first_beat]
 
-            if features and features.note_name == target["note"] and features.stable:
-                timing_err = self.song_time_beats - target["beat"]
-                if abs(timing_err) <= tol_t:
-                    target["status"] = "hit"
-                    self._handle_success(timing_err=timing_err, pitch_err=features.cents)
+            if len(group) == 1:
+                # Note seule : validation yin (inchangée)
+                target = group[0]
+                self.target_chord = None
+                self.target_note = target["note"]
+                self.target_position = (target["string"], target["fret"])
+
+                if features and features.note_name == target["note"] and features.stable:
+                    timing_err = self.song_time_beats - target["beat"]
+                    if abs(timing_err) <= tol_t:
+                        target["status"] = "hit"
+                        self._handle_success(timing_err=timing_err, pitch_err=features.cents)
+            else:
+                # Accord : validation spectrale des notes attendues
+                positions = [(n["string"], n["fret"]) for n in group]
+                self.target_chord = positions
+                self.target_note = group[0].get("label") or "+".join(n["note"] for n in group)
+                self.target_position = positions[0]
+
+                if features is not None and self.chord_detector is not None:
+                    r = self.chord_detector.detect(positions)
+                    self._chord_streak = self._chord_streak + 1 if r["present"] else 0
+                    # 2 détections consécutives (~30 ms) : anti-transitoire
+                    if self._chord_streak >= 2:
+                        timing_err = self.song_time_beats - first_beat
+                        if abs(timing_err) <= tol_t:
+                            mean_cents = sum(abs(x["cents"]) for x in r["notes"]) / len(r["notes"])
+                            for n in group:
+                                n["status"] = "hit"
+                            self._chord_streak = 0
+                            self._handle_success(timing_err=timing_err, pitch_err=mean_cents)
 
         self.active_notes = [n for n in self.active_notes if self.song_time_beats < n["beat"] + 1.0]
         

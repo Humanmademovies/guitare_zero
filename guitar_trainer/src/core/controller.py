@@ -53,6 +53,9 @@ class AppController:
                 block = audio_queue.get_nowait()
                 features = self.extractor.process(block)
                 last_features = features
+                # Le détecteur d'accords reçoit CHAQUE bloc (fenêtre sans trous)
+                if self.active_mode == "game":
+                    self.game_engine.push_chord_audio(block.samples)
         except queue.Empty:
             pass
 

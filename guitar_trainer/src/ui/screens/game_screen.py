@@ -293,9 +293,14 @@ class GameScreen(Screen):
         surface.blit(txt_note, (self.cx - txt_note.get_width()//2, panel_y + 10))
         
         # 2. L'AIDE (CONDITIONNELLE)
+        chord = getattr(engine, "target_chord", None)
         if engine.settings.show_helper:
             # Mode Normal : On donne la solution
-            helper_str = f"CORDE {string_num}   |   CASE {fret_num}"
+            if chord:
+                # Accord : positions compactes corde:case (ex. "6:0 + 5:2")
+                helper_str = "  +  ".join(f"{s}:{f}" for s, f in chord)
+            else:
+                helper_str = f"CORDE {string_num}   |   CASE {fret_num}"
             txt_col = (0, 255, 0) if engine.state == "SUCCESS" else (255, 200, 50)
             if engine.state == "MISS": txt_col = (255, 0, 0)
         else:
