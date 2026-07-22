@@ -20,6 +20,7 @@ class AudioStream:
         self._playback_pos = 0
         self.last_error: str | None = None
         self._input_gain = float(cfg.input_gain)
+        self._xruns = 0
 
     def start(self) -> bool:
         if self.running:
@@ -86,7 +87,10 @@ class AudioStream:
 
     def _callback(self, indata, outdata, frames, time_info, status):
         if status:
-            pass # Ignorer les erreurs xrun pour l'instant
+            # Comptage des xruns (log limité pour ne pas saturer le callback)
+            self._xruns += 1
+            if self._xruns == 1 or self._xruns % 100 == 0:
+                print(f"[AUDIO] Stream status: {status} (total: {self._xruns})")
 
         # 0. Gain d'entrée logiciel (guitare passive -> signal faible)
         boosted = indata * self._input_gain
